@@ -1,0 +1,45 @@
+.layout-container { 
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+	width: 200px;
+	border-right: 1px solid var(--mat-sys-outline-variant);
+	font-family: 'Poppins', sans-serif;
+}
+
+.sidebar mat-toolbar {
+	margin-bottom: 0.10rem;
+}
+
+.main-content {
+	padding: 1rem;
+}
+.app-title {
+    cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	font-family: 'Poppins', sans-serif;
+	font-size: 0.95rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+
+	img {
+		height: 32px;
+		width: auto;
+		max-width: 140px;
+		object-fit: contain;
+		display: block;
+        
+	}
+}
+
+.sidebar .mat-mdc-list-item .mdc-list-item__primary-text {
+	font-family: 'Poppins', sans-serif;
+	font-size: 0.92rem;
+	font-weight: 500;
+	letter-spacing: 0.02em;
+}
