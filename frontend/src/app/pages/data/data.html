@@ -1,19 +1,39 @@
 <h1>Data Page</h1>
 
-<mat-form-field>
-  <mat-label>Data Base</mat-label>
-  <mat-select>
-      <mat-option value="sp500">S&P 500</mat-option>
-      <mat-option value="nasdaq">NASDAQ</mat-option>
-  </mat-select>
-</mat-form-field>
+<div style="display: flex; gap: 16px; align-items: center; margin-bottom: 20px; margin-top: 30px;">
+  <mat-form-field>
+    <mat-label>Data Base</mat-label>
+    <mat-select [value]="ticker()" (selectionChange)="ticker.set($event.value)">
+        <mat-option value="sp500" >S&P 500</mat-option>
+        <mat-option value="nasdaq">NASDAQ</mat-option>
+    </mat-select>
+  </mat-form-field>
 
-<mat-form-field>
-  <mat-label>Time Period</mat-label>
-  <mat-select>
-      <mat-option value="1D">1 Day</mat-option>
-      <mat-option value="1M">1 Month</mat-option>
-      <mat-option value="1Y">1 Year</mat-option>
-      <mat-option value="5Y">5 Years</mat-option>
-  </mat-select>
-</mat-form-field>
+  <mat-form-field>
+    <mat-label>Time Period</mat-label>
+    <mat-select [value]="period()" (selectionChange)="period.set($event.value)">
+        <mat-option value="1D">1 Day</mat-option>
+        <mat-option value="1M">1 Month</mat-option>
+        <mat-option value="1Y">1 Year</mat-option>
+        <mat-option value="5Y">5 Years</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <button matButton="filled" (click)="loadData()" [disabled]="isLoading()">Charger</button>
+</div>
+
+<div style="margin-top: 20px;">
+  @if (isLoading()) {
+    <p><mat-icon>hourglass</mat-icon> Récupération des données depuis FastAPI...</p>
+  } @else if (errorMessage()) {
+    <p style="color: red;"><mat-icon>close</mat-icon> {{ errorMessage() }}</p>
+  } @else if (marketData().length > 0) {
+    <p><mat-icon>done_all</mat-icon> Succès ! {{ marketData().length }} points de données reçus.</p>
+    
+    <div style="background: #f4f4f4; padding: 15px; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+      <pre>{{ marketData() | json }}</pre>
+    </div>
+  } @else {
+    <p><mat-icon>ad</mat-icon> Sélectionnez vos filtres et cliquez sur "Charger les données".</p>
+  }
+</div>
