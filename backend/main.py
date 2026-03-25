@@ -2,8 +2,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional
-from pathlib import Path
-from datetime import timedelta
+from datetime import datetime, timedelta
+import yfinance as yf
 import pandas as pd
 
 import data
@@ -22,36 +22,40 @@ app.add_middleware(
 
 app.include_router(data.router, prefix="/api/data")
 
-DATA_DIR = Path(__file__).resolve().parent / "data"
 
-def load_market_data(file_name: str) -> pd.DataFrame:
-    df = pd.read_csv(DATA_DIR / file_name)
-    df["Time"] = pd.to_datetime(df["Time"], errors="coerce")
-    df = df.dropna(subset=["Time"]).set_index("Time").sort_index()
+def fetch_market_data(ticker: str, period: str) -> pd.DataFrame:
+    windows = {
+        "1D": timedelta(days=1),
+        "1M": timedelta(days=30),
+        "1Y": timedelta(days=365),
+        "5Y": timedelta(days=365 * 5),
+    }
+    window   = windows.get(period.upper(), timedelta(days=365))
+    end      = datetime.today()
+    start    = end - window
+
+    df = yf.download(ticker, start=start, end=end, auto_adjust=True)
+
+    if df.empty:
+        raise HTTPException(status_code=404, detail=f"Ticker '{ticker}' introuvable sur Yahoo Finance.")
+
+    df.columns = df.columns.get_level_values(0)
+    df.index.name = "Time"
+    df = df.sort_index()
     return df
 
-MARKET_DATA = {
-    "sp500": load_market_data("sp.csv"),
-    "nasdaq": load_market_data("nq.csv"),
-}
 
 class BacktestRequest(BaseModel):
-    ticker:          str             = Field(...,  example="sp500")
+    ticker:          str             = Field(...,  example="AAPL")
     period:          str             = Field("1Y", example="1Y")
     strategy:        str             = Field(...,  example="macd")
     params:          dict            = Field(default_factory=dict)
     capital_initial: Optional[float] = Field(None, example=10000)
     stop_loss:       Optional[float] = Field(None, example=0.05)
 
+
 @app.post("/api/backtest")
 def lancer_backtest(request: BacktestRequest):
-
-    normalized_ticker = request.ticker.lower()
-    if normalized_ticker not in MARKET_DATA:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Ticker '{request.ticker}' non trouvé. Disponibles : {list(MARKET_DATA.keys())}"
-        )
 
     strategy_key = request.strategy.lower()
     if strategy_key not in STRATEGIES_REGISTRY:
@@ -60,17 +64,7 @@ def lancer_backtest(request: BacktestRequest):
             detail=f"Stratégie '{request.strategy}' non trouvée. Disponibles : {list(STRATEGIES_REGISTRY.keys())}"
         )
 
-    windows = {
-        "1D": timedelta(days=1),
-        "1M": timedelta(days=30),
-        "1Y": timedelta(days=365),
-        "5Y": timedelta(days=365 * 5),
-    }
-    window = windows.get(request.period.upper(), timedelta(days=365))
-
-    df       = MARKET_DATA[normalized_ticker]
-    end_time = df.index.max()
-    df       = df[df.index >= end_time - window]
+    df = fetch_market_data(request.ticker, request.period)
 
     if len(df) < 10:
         raise HTTPException(status_code=422, detail="Pas assez de données pour cette période.")
@@ -91,12 +85,7 @@ def lancer_backtest(request: BacktestRequest):
         **results,
     }
 
+
 @app.get("/api/strategies")
 def list_strategies():
     return {"strategies": list(STRATEGIES_REGISTRY.keys())}
-```
-
-Message de commit :
-```
-feat: implement /api/backtest with real strategy and backtest engine
-
