@@ -1,59 +1,103 @@
-# Frontend
+# Frontend PRO3600 Backtesting
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.0.
+Frontend Angular de l'application PRO3600 Backtesting.
 
-## Development server
+Il fournit l'interface utilisateur de navigation et la page de consultation des donnees reliee au backend FastAPI.
 
-To start a local development server, run:
+## Stack technique
 
-```bash
-ng serve
+- Angular 21
+- Angular Material
+- RxJS
+- HttpClient Angular
+
+## Prerequis
+
+- Node.js 20 ou plus recent recommande
+- npm 10 ou plus recent
+
+## Installation
+
+Depuis le dossier `frontend`:
+
+```powershell
+npm install
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Lancement en developpement
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```powershell
+npm start
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Puis ouvrir:
 
-```bash
-ng generate --help
+```text
+http://localhost:4200
 ```
 
-## Building
+Le frontend appelle le backend sur:
 
-To build the project run:
-
-```bash
-ng build
+```text
+http://localhost:8000
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Le backend doit donc etre demarre en parallele pour que la page `Data` fonctionne.
 
-## Running unit tests
+## Scripts disponibles
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
+```powershell
+npm start
+npm run build
+npm test
 ```
 
-## Running end-to-end tests
+## Pages disponibles
 
-For end-to-end (e2e) testing, run:
+- `/` : page d'accueil
+- `/dashboard` : tableau de bord
+- `/data` : chargement des donnees de marche depuis FastAPI
+- `/backtests` : espace reserve aux backtests
+- `/results` : affichage des resultats
+- `/settings` : configuration de l'application
 
-```bash
-ng e2e
+## Service API utilise
+
+Le service frontend principal se trouve dans `src/services/data-service.ts`.
+
+Il consomme l'endpoint:
+
+```text
+GET http://localhost:8000/api/data/{ticker}?period={period}
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Exemples de valeurs:
 
-## Additional Resources
+- `ticker`: `sp500`, `nasdaq`
+- `period`: `1D`, `1M`, `1Y`, `5Y`
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Build de production
+
+```powershell
+npm run build
+```
+
+Les fichiers generes seront places dans le dossier `dist/`.
+
+## Tests
+
+```powershell
+npm test
+```
+
+## Probleme frequent
+
+Si la page `Data` affiche une erreur de connexion:
+
+- verifier que le backend FastAPI tourne sur le port `8000`
+- verifier que le frontend tourne sur le port `4200`
+- verifier que les dependances ont bien ete installees avec `npm install`
+
+## Documentation generale
+
+Pour la vue d'ensemble du projet et le lancement complet backend + frontend, voir le README a la racine du workspace.
