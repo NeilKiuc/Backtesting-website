@@ -1,14 +1,14 @@
-import { JsonPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { MarketChartComponent } from '../../components/market-chart/market-chart';
 import { DataService, MarketData } from '../../../services/data-service';
 import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-data',
-  imports: [JsonPipe, MatFormFieldModule, MatSelectModule, MatButtonModule, MatIcon],
+  imports: [MarketChartComponent, MatFormFieldModule, MatSelectModule, MatButtonModule, MatIcon],
   templateUrl: './data.html',
   styleUrl: './data.scss',
 })
