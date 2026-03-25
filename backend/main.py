@@ -3,6 +3,9 @@ from pydantic import BaseModel
 from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
 import data
+from strategies import STRATEGIES_REGISTRY
+from backtest import run_backtest
+
 
 app = FastAPI()
 app.add_middleware(
@@ -28,4 +31,5 @@ def lancer_backtest(request: BacktestRequest):
     capital = request.capital_initial
     resultat = capital * 1.1  # Simuler un gain de 10%
     return {"resultat": resultat, "details": f"Backtest pour {request.ticker} avec la stratégie {request.strategy}"}
+
 
