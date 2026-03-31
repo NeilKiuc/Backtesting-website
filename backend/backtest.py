@@ -68,8 +68,3 @@ def _build_signals(df: pd.DataFrame) -> list:
     float_cols = out.select_dtypes(include="float").columns
     out[float_cols] = out[float_cols].round(4)
     return out.to_dict(orient="records")
-```
-
-5. Message de commit :
-```
-feat: add backtest engine
