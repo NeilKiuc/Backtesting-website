@@ -30,8 +30,12 @@
   } @else if (marketData().length > 0) {
     <p><mat-icon>done_all</mat-icon> Succès ! {{ marketData().length }} points de données reçus.</p>
     
-    <div style="background: #f4f4f4; padding: 15px; border-radius: 8px; max-height: 400px; overflow-y: auto;">
-      <pre>{{ marketData() | json }}</pre>
+    <div style="background: #f4f4f4; padding: 15px; border-radius: 8px;">
+      <app-market-chart
+        [data]="marketData()"
+        [period]="period()"
+        [ticker]="ticker()"
+      ></app-market-chart>
     </div>
   } @else {
     <p><mat-icon>ad</mat-icon> Sélectionnez vos filtres et cliquez sur "Charger les données".</p>
