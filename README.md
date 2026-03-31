@@ -1,4 +1,4 @@
-# 📈 Plateforme de Backtesting de Stratégies de Trading
+#  Plateforme de Backtesting de Stratégies de Trading
 
 Plateforme web interactive permettant de tester des stratégies de trading sur des données de marché historiques. Projet développé dans le cadre d'un cursus ingénieur à **Télécom SudParis** (Institut Polytechnique de Paris).
 
