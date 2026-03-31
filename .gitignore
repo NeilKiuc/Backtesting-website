@@ -19,6 +19,8 @@ frontend/.angular/
 
 # Env
 .env
+.venv
+venv
 .env.*
 *.local
 
