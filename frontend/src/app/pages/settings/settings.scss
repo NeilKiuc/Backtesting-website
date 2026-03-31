@@ -1,0 +1,290 @@
+// ─── Layout ──────────────────────────────────────────────────────────────────
+
+.settings-wrapper {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 32px;
+}
+
+.settings-header {
+  padding: 24px 24px 20px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0 0 4px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--mat-sys-on-surface);
+  }
+
+  .subtitle {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.settings-container {
+  display: flex;
+  gap: 20px;
+  padding: 0 24px;
+}
+
+// ─── Sidebar ─────────────────────────────────────────────────────────────────
+
+.sidebar-nav {
+  width: 210px;
+  flex-shrink: 0;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  overflow: hidden;
+  position: sticky;
+  top: 16px;
+  height: fit-content;
+  background: var(--mat-sys-surface-container-low);
+
+  ::ng-deep mat-nav-list {
+    padding: 6px 0;
+  }
+
+  button[mat-list-item] {
+    border-radius: 0;
+    border-left: 3px solid transparent;
+    transition: background 0.15s, border-color 0.15s;
+    color: var(--mat-sys-on-surface-variant);
+
+    &:hover {
+      background: var(--mat-sys-surface-container);
+    }
+
+    &.active {
+      background: var(--mat-sys-secondary-container);
+      border-left-color: var(--mat-sys-primary);
+      color: var(--mat-sys-on-secondary-container);
+
+      mat-icon {
+        color: var(--mat-sys-primary);
+      }
+    }
+  }
+}
+
+// ─── Content ─────────────────────────────────────────────────────────────────
+
+.settings-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.category-panel {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ─── Cards ───────────────────────────────────────────────────────────────────
+
+.settings-card {
+  border-radius: 12px !important;
+
+  ::ng-deep {
+    .mat-mdc-card-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--mat-sys-outline-variant);
+      background: var(--mat-sys-surface-container-low);
+    }
+
+    .mat-mdc-card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--mat-sys-on-surface);
+    }
+
+    .mat-mdc-card-subtitle {
+      font-size: 0.8rem;
+      color: var(--mat-sys-on-surface-variant);
+      margin-top: 2px;
+    }
+
+    .mat-mdc-card-content {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+  }
+}
+
+.danger-card {
+  border-radius: 12px !important;
+
+  ::ng-deep {
+    .mdc-card__outline {
+      border-color: var(--mat-sys-error) !important;
+    }
+
+    .mat-mdc-card-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--mat-sys-error);
+      background: color-mix(in srgb, var(--mat-sys-error) 6%, var(--mat-sys-surface));
+    }
+
+    .mat-mdc-card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--mat-sys-error);
+    }
+
+    .mat-mdc-card-subtitle {
+      font-size: 0.8rem;
+      color: var(--mat-sys-on-surface-variant);
+      margin-top: 2px;
+    }
+
+    .mat-mdc-card-content {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+  }
+}
+
+// ─── Form fields ─────────────────────────────────────────────────────────────
+
+.full-width {
+  width: 100%;
+}
+
+// ─── Theme selector ──────────────────────────────────────────────────────────
+
+.theme-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .section-label {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface);
+  }
+
+  .radio-group {
+    display: flex;
+    gap: 24px;
+    padding: 12px 16px;
+    background: var(--mat-sys-surface-container-low);
+    border: 1px solid var(--mat-sys-outline-variant);
+    border-radius: 8px;
+  }
+}
+
+// ─── Toggle rows ─────────────────────────────────────────────────────────────
+
+.toggle-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+
+  .toggle-title {
+    margin: 0 0 2px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface);
+  }
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// ─── Danger zone ─────────────────────────────────────────────────────────────
+
+.danger-warning {
+  margin: 0;
+  padding: 12px 16px;
+  border-left: 4px solid var(--mat-sys-error);
+  border-radius: 0 6px 6px 0;
+  background: color-mix(in srgb, var(--mat-sys-error) 8%, transparent);
+  color: var(--mat-sys-error);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+// ─── Footer ──────────────────────────────────────────────────────────────────
+
+.settings-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+
+  .unsaved-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--mat-sys-tertiary);
+  }
+
+  .button-group {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+  }
+}
+
+// ─── Responsive ──────────────────────────────────────────────────────────────
+
+@media (max-width: 768px) {
+  .settings-container {
+    flex-direction: column;
+    padding: 0 16px;
+  }
+
+  .sidebar-nav {
+    width: 100%;
+    position: static;
+
+    ::ng-deep mat-nav-list {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 4px;
+    }
+
+    button[mat-list-item] {
+      flex: 1 1 100px;
+      min-width: 90px;
+    }
+  }
+
+  .settings-footer {
+    flex-direction: column;
+    align-items: stretch;
+
+    .button-group {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+}

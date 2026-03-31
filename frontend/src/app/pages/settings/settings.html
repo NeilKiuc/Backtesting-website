@@ -1,6 +1,156 @@
-<h1>Settings</h1>
+<div class="settings-wrapper">
+  <div class="settings-header">
+    <h1>Paramètres</h1>
+    <p class="subtitle">Gérez vos préférences et paramètres de compte</p>
+  </div>
 
-<div style="margin-top: 60px;">
-    <p> Apparence </p>
-    
+  <div class="settings-container">
+    <aside class="sidebar-nav">
+      <mat-nav-list>
+        <button
+          mat-list-item
+          *ngFor="let cat of categories"
+          [class.active]="activeCategory === cat.id"
+          (click)="selectCategory(cat.id)"
+        >
+          <mat-icon matListItemIcon>{{ cat.icon }}</mat-icon>
+          <span matListItemTitle>{{ cat.label }}</span>
+        </button>
+      </mat-nav-list>
+    </aside>
+
+    <main class="settings-content">
+
+      <div *ngIf="activeCategory === 'compte'" class="category-panel">
+        <mat-card appearance="outlined" class="settings-card">
+          <mat-card-header>
+            <mat-card-title>Paramètres du compte</mat-card-title>
+            <mat-card-subtitle>Modifiez vos informations personnelles</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-form-field class="full-width" appearance="outline">
+              <mat-label>Nom d'utilisateur</mat-label>
+              <mat-icon matPrefix>account_circle</mat-icon>
+              <input matInput [(ngModel)]="model.username" (change)="onModelChange()" placeholder="Entrez votre nom" />
+            </mat-form-field>
+            <mat-form-field class="full-width" appearance="outline">
+              <mat-label>Email</mat-label>
+              <mat-icon matPrefix>email</mat-icon>
+              <input matInput type="email" [(ngModel)]="model.email" (change)="onModelChange()" placeholder="exemple@mail.com" />
+            </mat-form-field>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <div *ngIf="activeCategory === 'apparence'" class="category-panel">
+        <mat-card appearance="outlined" class="settings-card">
+          <mat-card-header>
+            <mat-card-title>Apparence</mat-card-title>
+            <mat-card-subtitle>Personnalisez l'interface</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-form-field class="full-width" appearance="outline">
+              <mat-label>Langue</mat-label>
+              <mat-icon matPrefix>language</mat-icon>
+              <mat-select [(ngModel)]="model.language" (ngModelChange)="onModelChange()">
+                <mat-option *ngFor="let lang of languages" [value]="lang">{{ lang }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <div class="theme-section">
+              <p class="section-label">Thème</p>
+              <mat-radio-group [(ngModel)]="model.theme" (change)="onModelChange()" class="radio-group">
+                <mat-radio-button value="light">Clair</mat-radio-button>
+                <mat-radio-button value="dark">Sombre</mat-radio-button>
+              </mat-radio-group>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <div *ngIf="activeCategory === 'notifications'" class="category-panel">
+        <mat-card appearance="outlined" class="settings-card">
+          <mat-card-header>
+            <mat-card-title>Notifications</mat-card-title>
+            <mat-card-subtitle>Contrôlez comment vous recevez les notifications</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="toggle-item">
+              <div>
+                <p class="toggle-title">Notifications in-app</p>
+                <p class="hint">Recevez les notifications directement dans l'application</p>
+              </div>
+              <mat-slide-toggle [(ngModel)]="model.notifications" (change)="onModelChange()"></mat-slide-toggle>
+            </div>
+            <mat-divider></mat-divider>
+            <div class="toggle-item">
+              <div>
+                <p class="toggle-title">Mises à jour par email</p>
+                <p class="hint">Recevez les mises à jour importantes par email</p>
+              </div>
+              <mat-slide-toggle [(ngModel)]="model.emailUpdates" (change)="onModelChange()"></mat-slide-toggle>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <div *ngIf="activeCategory === 'securite'" class="category-panel">
+        <mat-card appearance="outlined" class="settings-card">
+          <mat-card-header>
+            <mat-card-title>Sécurité</mat-card-title>
+            <mat-card-subtitle>Gérez vos paramètres de sécurité</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-form-field class="full-width" appearance="outline">
+              <mat-label>Confidentialité</mat-label>
+              <mat-icon matPrefix>lock</mat-icon>
+              <mat-select [(ngModel)]="model.privacy" (ngModelChange)="onModelChange()">
+                <mat-option value="public">Public</mat-option>
+                <mat-option value="private">Privé</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <p class="hint">Privé : vos données de backtesting ne sont visibles que par vous.</p>
+            <mat-divider></mat-divider>
+            <div class="toggle-item">
+              <div>
+                <p class="toggle-title">Authentification 2FA</p>
+                <p class="hint">Sécurisez votre compte avec une double authentification (à venir)</p>
+              </div>
+              <mat-slide-toggle disabled></mat-slide-toggle>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <div *ngIf="activeCategory === 'danger'" class="category-panel">
+        <mat-card appearance="outlined" class="danger-card">
+          <mat-card-header>
+            <mat-card-title>Zone de danger</mat-card-title>
+            <mat-card-subtitle>Actions irréversibles sur votre compte</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p class="danger-warning">Cette section contient des actions qui ne peuvent pas être annulées.</p>
+            <button mat-raised-button color="warn" (click)="deleteAccount()" class="full-width">
+              <mat-icon>delete_forever</mat-icon>
+              Supprimer mon compte
+            </button>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <div class="settings-footer">
+        <span class="unsaved-label" *ngIf="hasChanges">
+          <mat-icon>warning</mat-icon> Changements non enregistrés
+        </span>
+        <div class="button-group">
+          <button mat-stroked-button (click)="resetSettings()">
+            <mat-icon>refresh</mat-icon> Réinitialiser
+          </button>
+          <button mat-raised-button color="primary" (click)="saveSettings()" [disabled]="!hasChanges">
+            <mat-icon>save</mat-icon> Enregistrer
+          </button>
+        </div>
+      </div>
+
+    </main>
+  </div>
 </div>
