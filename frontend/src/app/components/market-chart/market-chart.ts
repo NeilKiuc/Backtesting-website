@@ -77,8 +77,7 @@ export class MarketChartComponent implements AfterViewInit, OnChanges, OnDestroy
     const height = host.clientHeight;
 
     this.chart = createChart(host, {
-      width: Math.max(width, 300),
-      height: Math.max(height, 300),
+      autoSize: true,
       layout: {
         background: { type: ColorType.Solid, color: '#0f1216' },
         textColor: '#d1d4dc',
