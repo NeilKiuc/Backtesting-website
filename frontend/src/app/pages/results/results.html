@@ -1,1 +1,62 @@
-<h1> Results </h1>
+<div class="page-container">
+
+  @if (!result) {
+    <div class="no-data">
+      <p>Aucun résultat à afficher.</p>
+      <button mat-flat-button color="primary" (click)="retour()">Lancer un backtest</button>
+    </div>
+  } @else {
+
+    <div class="header">
+      <div class="header-info">
+        <h1>{{ result.ticker }} — {{ result.strategy }}</h1>
+        <span class="subtitle">{{ result.stats.n_bars }} jours · {{ result.stats.n_trades }} trades</span>
+      </div>
+      <button mat-stroked-button (click)="retour()">Nouveau backtest</button>
+    </div>
+
+    <div class="stats-grid">
+
+      <div class="stat-card" [class.positive]="isPositive(result.stats.total_return_strat)" [class.negative]="!isPositive(result.stats.total_return_strat)">
+        <span class="stat-label">Rendement stratégie</span>
+        <span class="stat-value">{{ formatPct(result.stats.total_return_strat) }}</span>
+      </div>
+
+      <div class="stat-card" [class.positive]="isPositive(result.stats.total_return_market)" [class.negative]="!isPositive(result.stats.total_return_market)">
+        <span class="stat-label">Rendement marché</span>
+        <span class="stat-value">{{ formatPct(result.stats.total_return_market) }}</span>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Sharpe Ratio</span>
+        <span class="stat-value">{{ result.stats.sharpe_ratio }}</span>
+      </div>
+
+      <div class="stat-card" [class.negative]="true">
+        <span class="stat-label">Max Drawdown</span>
+        <span class="stat-value">{{ formatPct(result.stats.max_drawdown) }}</span>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Win Rate</span>
+        <span class="stat-value">{{ formatPct(result.stats.win_rate) }}</span>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Nombre de trades</span>
+        <span class="stat-value">{{ result.stats.n_trades }}</span>
+      </div>
+
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-legend">
+        <span class="legend-strat">Stratégie</span>
+        <span class="legend-market">Marché</span>
+      </div>
+      <div #chartHost class="chart-host"></div>
+    </div>
+
+  }
+
+</div>

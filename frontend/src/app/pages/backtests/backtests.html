@@ -1,2 +1,83 @@
-<h1>Backtests</h1>
+<div class="page-container">
+  <h1>Lancer un Backtest</h1>
 
+  <!-- Message d'erreur (visible seulement si errorMessage est non-null) -->
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  <!-- Spinner pendant le chargement des stratégies -->
+  @if (isLoadingStrategies()) {
+    <div class="spinner-container">
+      <mat-spinner diameter="40" />
+    </div>
+  } @else {
+
+    <form class="backtest-form" (ngSubmit)="lancer()">
+
+      <!-- LIGNE 1 : Ticker et Période -->
+      <div class="form-row">
+
+        <mat-form-field appearance="outline">
+          <mat-label>Ticker</mat-label>
+          <input matInput [(ngModel)]="ticker" name="ticker" placeholder="ex: AAPL" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Période</mat-label>
+          <mat-select [(ngModel)]="period" name="period">
+            <mat-option value="1M">1 Mois</mat-option>
+            <mat-option value="1Y">1 An</mat-option>
+            <mat-option value="5Y">5 Ans</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+      </div>
+
+      <!-- LIGNE 2 : Stratégie et Capital -->
+      <div class="form-row">
+
+        <mat-form-field appearance="outline">
+          <mat-label>Stratégie</mat-label>
+          <mat-select [(ngModel)]="selectedStrategy" name="strategy" (ngModelChange)="onStrategyChange()">
+            @for (strat of strategies(); track strat) {
+              <mat-option [value]="strat">{{ strat }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Capital initial (€)</mat-label>
+          <input matInput type="number" [(ngModel)]="capitalInitial" name="capital" />
+        </mat-form-field>
+
+      </div>
+
+      <!-- LIGNE 3 : Paramètres dynamiques de la stratégie -->
+      @if (currentParams.length > 0) {
+        <div class="params-section">
+          <h3>Paramètres de la stratégie</h3>
+          <div class="form-row">
+            @for (param of currentParams; track param.key) {
+              <mat-form-field appearance="outline">
+                <mat-label>{{ param.label }}</mat-label>
+                <input matInput type="number" [(ngModel)]="paramValues[param.key]" [name]="param.key" />
+              </mat-form-field>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- BOUTON de soumission -->
+      <button mat-flat-button color="primary" type="submit" [disabled]="isRunning()">
+        @if (isRunning()) {
+          <mat-spinner diameter="20" />
+          Calcul en cours...
+        } @else {
+          Lancer le backtest
+        }
+      </button>
+
+    </form>
+  }
+</div>
