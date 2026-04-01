@@ -1,143 +1,73 @@
-# PRO3600 Backtesting
+# PRO3600 — Backtesting Website
 
-Application de backtesting composee de deux parties:
+Plateforme web de backtesting de stratégies algorithmiques sur données financières réelles.
 
-- un backend FastAPI qui expose des donnees de marche depuis des fichiers CSV
-- un frontend Angular qui consomme l'API et affiche les pages de l'application
+> **Le développement actif se fait sur la branche `dev`.**
 
-Le projet sert de base pour construire une interface de consultation de donnees, de lancement de backtests et d'affichage de resultats.
+## Stack
 
-## Etat actuel du projet
+| Couche | Technologie |
+|--------|------------|
+| Backend | Python · FastAPI · yfinance · Pandas |
+| Frontend | Angular 21 · Angular Material · lightweight-charts |
 
-Le projet contient deja:
+## Prérequis
 
-- une API FastAPI disponible sur le port `8000`
-- une page Angular de consultation des donnees connectee au backend
-- des pages structurelles pour `Dashboard`, `Data`, `Backtests`, `Results` et `Settings`
-- des fichiers CSV locaux dans `backend/data/` pour le S&P 500 et le Nasdaq
+- Python 3.11+
+- Node.js 20+ · npm 10+
 
-Certaines pages frontend sont encore des placeholders. La page `Data` est aujourd'hui la partie la plus fonctionnelle.
+## Lancement
 
-## Architecture
+Ouvrir deux terminaux.
 
-```text
-PRO3600_Backtesting/
-|- backend/
-|  |- main.py
-|  |- requirements.txt
-|  \- data/
-|     |- sp.csv
-|     \- nq.csv
-\- frontend/
-   |- package.json
-   \- src/
-```
+### Backend
 
-## Prerequis
+```bash
+cd backend
 
-- Python 3.11 ou plus recent recommande
-- Node.js 20 ou plus recent recommande
-- npm 10 ou plus recent
+# Linux / macOS
+python3 -m venv .venv
+source .venv/bin/activate
 
-## Demarrage rapide
-
-Ouvrir deux terminaux:
-
-### 1. Lancer le backend
-
-Depuis le dossier `backend`:
-
-```powershell
+# Windows (PowerShell)
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+
 pip install -r requirements.txt
 uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-API disponible sur `http://127.0.0.1:8000`
+API : `http://127.0.0.1:8000`  
+Docs : `http://127.0.0.1:8000/docs`
 
-Documentation interactive FastAPI:
+### Frontend
 
-- `http://127.0.0.1:8000/docs`
-- `http://127.0.0.1:8000/redoc`
-
-### 2. Lancer le frontend
-
-Depuis le dossier `frontend`:
-
-```powershell
+```bash
+cd frontend
 npm install
 npm start
 ```
 
-Application disponible sur `http://localhost:4200`
+App : `http://localhost:4200`
 
-## Fonctionnement backend
+## API
 
-Le backend charge les donnees depuis `backend/data/sp.csv` et `backend/data/nq.csv`, puis expose un endpoint principal:
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/api/data/{ticker}?period={p}` | Données OHLCV temps réel (yfinance) |
+| POST | `/api/backtest` | Lancer un backtest |
+| GET | `/api/strategies` | Lister les stratégies disponibles |
 
-```http
-GET /api/data/{ticker}?period={period}
-```
+**Tickers** : `sp500`, `nasdaq`, `nq`  
+**Périodes** : `1D`, `1M`, `1Y`, `5Y`  
+**Stratégies** : `macd`, `rsi`, `ma_crossover`
 
-Valeurs prises en charge:
+## Routes frontend
 
-- `ticker`: `sp500`, `nasdaq`, `nq`
-- `period`: `1D`, `1M`, `1Y`, `5Y`
-
-Le service:
-
-- lit les CSV avec Pandas
-- convertit la colonne `Time` en datetime
-- filtre selon la fenetre demandee
-- re-echantillonne les donnees selon la periode
-- limite la reponse a environ 1000 points maximum
-
-Exemple:
-
-```text
-http://127.0.0.1:8000/api/data/sp500?period=1M
-```
-
-## Fonctionnement frontend
-
-Le frontend Angular utilise un service HTTP qui appelle directement:
-
-```text
-http://localhost:8000/api/data/{ticker}?period={period}
-```
-
-Routes actuellement definies:
-
-- `/` : page d'accueil
-- `/dashboard` : tableau de bord
-- `/data` : consultation et chargement des donnees de marche
-- `/backtests` : page de backtests
-- `/results` : page de resultats
-- `/settings` : page de configuration
-
-## Commandes utiles
-
-### Backend
-
-```powershell
-uvicorn main:app --reload
-```
-
-### Frontend
-
-```powershell
-npm start
-npm run build
-npm test
-```
-
-## Points d'attention
-
-- Le CORS du backend autorise actuellement `http://localhost:4200`
-- Le frontend suppose que l'API tourne sur `http://localhost:8000`
-- Si le backend n'est pas lance, la page `Data` affichera une erreur de connexion
-
-## Documentation complementaire
-
-- README frontend: `frontend/README.md`
+| Route | Description |
+|-------|-------------|
+| `/` | Page d'accueil |
+| `/dashboard` | Tableau de bord |
+| `/data` | Visualisation des données de marché |
+| `/backtests` | Lancement et résultats de backtests |
+| `/settings` | Paramètres utilisateur |
