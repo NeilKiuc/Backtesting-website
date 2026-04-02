@@ -5,12 +5,19 @@ from typing import Optional
 from datetime import datetime, timedelta
 import yfinance as yf
 import pandas as pd
+from database import Base, engine
+import models
+
 
 import data
 from strategies import STRATEGIES_REGISTRY
 from backtest import run_backtest
 
 app = FastAPI()
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
+
 
 app.add_middleware(
     CORSMiddleware,
