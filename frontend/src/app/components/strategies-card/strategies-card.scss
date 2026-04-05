@@ -1,0 +1,163 @@
+.sc-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+// ── Header ────────────────────────────────────────────
+.sc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.sc-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+// ── Filter tabs ───────────────────────────────────────
+.sc-filters {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: #666;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: #aaa;
+    color: #333;
+  }
+
+  &--active {
+    background: #1976d2;
+    border-color: #1976d2;
+    color: #fff;
+
+    .badge {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+  }
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 10px;
+  background: #e0e0e0;
+  color: #555;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+// ── Strategy list ─────────────────────────────────────
+.sc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.strategy-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fafafa;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #f0f4ff;
+  }
+}
+
+// Icon with tinted background
+.strategy-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+// Name + Sharpe
+.strategy-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.strategy-name {
+  font-size: 0.88rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.strategy-sharpe {
+  font-size: 0.72rem;
+  color: #999;
+}
+
+// Performance %
+.strategy-perf {
+  font-size: 0.85rem;
+  font-weight: 600;
+  flex-shrink: 0;
+
+  &.perf--pos { color: #4CAF50; }
+  &.perf--neg { color: #f44336; }
+}
+
+// Status dot
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.dot--active { background: #4CAF50; }
+  &.dot--paused { background: #FF9800; }
+  &.dot--draft  { background: #bdbdbd; }
+}
+
+// Empty state
+.sc-empty {
+  font-size: 0.85rem;
+  color: #aaa;
+  text-align: center;
+  margin-top: 24px;
+}

@@ -5,60 +5,29 @@
     <p class="subtitle">Bienvenue sur votre plateforme de backtesting</p>
   </div>
 
-  <div class="stats-row">
-    <mat-card appearance="outlined" class="stat-card">
-      <mat-card-content>
-        <mat-icon>bar_chart</mat-icon>
-        <p class="stat-value">3</p>
-        <p class="stat-label">Stratégies disponibles</p>
-      </mat-card-content>
-    </mat-card>
+  <div class="main-grid">
 
-    <mat-card appearance="outlined" class="stat-card">
-      <mat-card-content>
-        <mat-icon>show_chart</mat-icon>
-        <p class="stat-value">3</p>
-        <p class="stat-label">Marchés suivis</p>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card appearance="outlined" class="stat-card">
+    <mat-card appearance="outlined" class="card-historique">
       <mat-card-content>
         <mat-icon>history</mat-icon>
-        <p class="stat-value">—</p>
-        <p class="stat-label">Backtests lancés</p>
-      </mat-card-content>
-    </mat-card>
-  </div>
-
-  <div class="actions-row">
-    <mat-card appearance="outlined" class="action-card" routerLink="/data">
-      <mat-card-content>
-        <mat-icon>candlestick_chart</mat-icon>
-        <p class="action-label">Données de marché</p>
+        <p class="card-label">Historiques Backtests lancés</p>
       </mat-card-content>
     </mat-card>
 
-    <mat-card appearance="outlined" class="action-card" routerLink="/backtests">
+    <mat-card appearance="outlined" class="card-strategies" routerLink="/strategies">
       <mat-card-content>
-        <mat-icon>play_circle</mat-icon>
-        <p class="action-label">Lancer un backtest</p>
+        <mat-icon>bar_chart</mat-icon>
+        <p class="card-label">Stratégies</p>
       </mat-card-content>
     </mat-card>
 
-    <mat-card appearance="outlined" class="action-card" routerLink="/results">
+    <mat-card appearance="outlined" class="card-marche" routerLink="/data">
       <mat-card-content>
-        <mat-icon>assessment</mat-icon>
-        <p class="action-label">Résultats</p>
+        <mat-icon>show_chart</mat-icon>
+        <p class="card-label">Marché suivis</p>
       </mat-card-content>
     </mat-card>
 
-    <mat-card appearance="outlined" class="action-card" routerLink="/settings">
-      <mat-card-content>
-        <mat-icon>settings</mat-icon>
-        <p class="action-label">Paramètres</p>
-      </mat-card-content>
-    </mat-card>
   </div>
 
 </div>

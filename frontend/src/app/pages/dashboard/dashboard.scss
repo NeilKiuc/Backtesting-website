@@ -1,37 +1,78 @@
 .dashboard-wrapper {
   padding: 32px;
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
+  height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
 }
 
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+.dashboard-header {
   margin-bottom: 24px;
 }
 
-.actions-row {
+.main-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 3fr 2fr;
+  grid-template-rows: 1fr 1fr;
   gap: 16px;
+  flex: 1;
 }
 
-.action-card {
+.card-historique {
+  grid-row: 1 / 3;
+  height: 100%;
+
+  mat-card-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+    }
+  }
+}
+
+.card-strategies,
+.card-marche {
   cursor: pointer;
-  text-align: center;
+  height: 100%;
+
+  mat-card-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    mat-icon {
+      font-size: 36px;
+      width: 36px;
+      height: 36px;
+    }
+  }
 
   &:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 }
 
-.stat-card {
+.card-label {
   text-align: center;
+  font-size: 1.1rem;
+  margin: 0;
 }
 
 .fab-backtest {
   position: fixed;
   bottom: 32px;
   right: 32px;
+  z-index: 100;
 }
