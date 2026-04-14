@@ -1,0 +1,60 @@
+.page-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 0 24px;
+}
+
+h1 {
+  margin-bottom: 32px;
+}
+
+.backtest-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// Deux champs côte à côte
+.form-row {
+  display: flex;
+  gap: 16px;
+
+  mat-form-field {
+    flex: 1; // chaque champ prend la même largeur
+  }
+}
+
+.params-section {
+  margin-top: 8px;
+
+  h3 {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 8px;
+  }
+}
+
+button[mat-flat-button] {
+  margin-top: 16px;
+  height: 48px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+.error-banner {
+  background: #fdecea;
+  color: #c62828;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
