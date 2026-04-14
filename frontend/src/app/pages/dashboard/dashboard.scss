@@ -1,16 +1,94 @@
 .dashboard-wrapper {
-  padding: 32px;
   max-width: 1000px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
+.dashboard-header {
+  h1 { margin: 0; font-size: 1.8rem; font-weight: 700; }
+  .subtitle { margin: 4px 0 0; color: var(--mat-sys-on-surface-variant); }
+}
+
+/* Stats */
 .stats-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  margin-bottom: 24px;
 }
 
+.stat-card mat-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 16px;
+}
+
+.stat-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.accent-blue   { background: #e3f2fd; color: #1976d2; }
+  &.accent-green  { background: #e8f5e9; color: #388e3c; }
+  &.accent-purple { background: #f3e5f5; color: #7b1fa2; }
+}
+
+.stat-value {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--mat-sys-on-surface);
+}
+
+.stat-label {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+/* Recent */
+.recent-card mat-card-content {
+  padding-top: 8px;
+}
+
+.recent-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.recent-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recent-ticker {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.recent-meta {
+  font-size: 0.78rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.recent-return {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.positive { color: #4caf50; }
+.negative { color: #f44336; }
+
+/* Actions */
 .actions-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -20,12 +98,18 @@
 .action-card {
   cursor: pointer;
   text-align: center;
+  transition: box-shadow 0.2s;
 
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  mat-card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding-top: 20px;
+
+    mat-icon { font-size: 2rem; width: 2rem; height: 2rem; color: var(--mat-sys-primary); }
+    p { margin: 0; font-size: 0.85rem; font-weight: 500; }
   }
-}
 
-.stat-card {
-  text-align: center;
+  &:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
 }
