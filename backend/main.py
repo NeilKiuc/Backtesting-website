@@ -28,7 +28,10 @@ Base.metadata.create_all(bind=engine)
 app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "changeme-secret-key"))
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],
+    allow_origins=[
+        "http://localhost:4200",
+        "https://backtesting-website.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
