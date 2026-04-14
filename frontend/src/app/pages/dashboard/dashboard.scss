@@ -119,3 +119,26 @@
   bottom: 32px;
   right: 32px;
 }
+
+@media (max-width: 768px) {
+  .dashboard-wrapper {
+    gap: 16px;
+  }
+
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+
+    .stat-card:last-child {
+      grid-column: span 2;
+    }
+  }
+
+  .actions-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .fab-backtest {
+    bottom: 16px;
+    right: 16px;
+  }
+}
