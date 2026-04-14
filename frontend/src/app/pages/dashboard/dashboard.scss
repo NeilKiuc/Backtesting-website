@@ -9,40 +9,70 @@
 
 .dashboard-header {
   margin-bottom: 24px;
+
+  h1 { margin: 0 0 4px; }
+  .subtitle { margin: 0; color: var(--mat-sys-on-surface-variant); }
 }
 
+/* Grid principal : grande carte à gauche, colonne droite */
 .main-grid {
   display: grid;
   grid-template-columns: 3fr 2fr;
-  grid-template-rows: 1fr 1fr;
   gap: 16px;
   flex: 1;
+  min-height: 0;
 }
 
+/* ── Carte historique (gauche) ── */
 .card-historique {
-  grid-row: 1 / 3;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 
-  mat-card-content {
+  mat-card-header { flex-shrink: 0; padding: 16px 16px 0; }
+
+  .historique-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+
+  .state-center {
     height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 12px;
-
-    mat-icon {
-      font-size: 48px;
-      width: 48px;
-      height: 48px;
-    }
   }
+
+  .state-empty {
+    color: var(--mat-sys-on-surface-variant);
+    mat-icon { font-size: 48px; width: 48px; height: 48px; }
+    p { margin: 0; }
+  }
+}
+
+.history-item {
+  .positive { color: #2e7d32; font-weight: 600; }
+  .negative { color: #c62828; font-weight: 600; }
+  .history-meta { font-size: 0.78rem; color: var(--mat-sys-on-surface-variant); }
+}
+
+/* ── Colonne droite : 3 cartes empilées ── */
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .card-strategies,
 .card-marche {
+  flex: 1;
   cursor: pointer;
-  height: 100%;
+  transition: box-shadow 0.2s;
+
+  &:hover { box-shadow: var(--mat-sys-level3); }
 
   mat-card-content {
     height: 100%;
@@ -50,35 +80,39 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
 
     mat-icon {
-      font-size: 36px;
-      width: 36px;
-      height: 36px;
+      font-size: 2.5rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      color: var(--mat-sys-primary);
     }
   }
+}
+
+.card-launch {
+  flex: 0 0 auto;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+  background-color: var(--mat-sys-primary-container);
+
+  &:hover { box-shadow: var(--mat-sys-level3); }
 
   mat-card-content {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 8px;
-    padding-top: 20px;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px !important;
 
-    mat-icon { font-size: 2rem; width: 2rem; height: 2rem; color: var(--mat-sys-primary); }
-    p { margin: 0; font-size: 0.85rem; font-weight: 500; }
+    mat-icon { color: var(--mat-sys-on-primary-container); }
   }
-
-.card-label {
-  text-align: center;
-  font-size: 1.1rem;
-  margin: 0;
 }
 
-.fab-backtest {
-  position: fixed;
-  bottom: 32px;
-  right: 32px;
-  z-index: 100;
+.card-label {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
 }

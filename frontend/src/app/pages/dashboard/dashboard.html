@@ -13,38 +13,76 @@
 
   <div class="main-grid">
 
+    <!-- Colonne gauche : historique (grande carte) -->
     <mat-card appearance="outlined" class="card-historique">
-      <mat-card-content>
-        <mat-icon>history</mat-icon>
-        <p class="card-label">Historiques Backtests lancés</p>
+      <mat-card-header>
+        <mat-icon mat-card-avatar>history</mat-icon>
+        <mat-card-title>Historiques Backtests lancés</mat-card-title>
+        @if (!loading()) {
+          <mat-card-subtitle>{{ totalBacktests() }} backtest{{ totalBacktests() > 1 ? 's' : '' }}</mat-card-subtitle>
+        }
+      </mat-card-header>
+
+      <mat-card-content class="historique-content">
+        @if (loading()) {
+          <div class="state-center">
+            <mat-spinner diameter="48" />
+          </div>
+        } @else if (history().length === 0) {
+          <div class="state-center state-empty">
+            <mat-icon>inbox</mat-icon>
+            <p>Aucun backtest lancé pour l'instant.</p>
+          </div>
+        } @else {
+          <mat-list>
+            @for (r of history(); track r.id) {
+              <mat-list-item class="history-item">
+                <mat-icon matListItemIcon>show_chart</mat-icon>
+                <span matListItemTitle>{{ r.ticker }} — {{ r.strategy }}</span>
+                <span matListItemLine class="history-meta">
+                  {{ r.period }} &bull; {{ r.created_at | date:'dd/MM/yyyy' }}
+                </span>
+                <span matListItemMeta
+                      [class.positive]="r.total_return_strat >= 0"
+                      [class.negative]="r.total_return_strat < 0">
+                  {{ pct(r.total_return_strat) }}
+                </span>
+              </mat-list-item>
+              <mat-divider />
+            }
+          </mat-list>
+        }
       </mat-card-content>
     </mat-card>
 
-    <mat-card appearance="outlined" class="card-strategies" routerLink="/strategies">
-      <mat-card-content>
-        <mat-icon>bar_chart</mat-icon>
-        <p class="card-label">Stratégies</p>
-      </mat-card-content>
-    </mat-card>
+    <!-- Colonne droite : 3 cartes empilées -->
+    <div class="right-column">
 
-    <mat-card appearance="outlined" class="card-marche" routerLink="/data">
-      <mat-card-content>
-        <mat-icon>assessment</mat-icon>
-        <p>Résultats</p>
-      </mat-card-content>
-    </mat-card>
+      <!-- Stratégies -->
+      <mat-card appearance="outlined" class="card-strategies" routerLink="/strategies">
+        <mat-card-content>
+          <mat-icon>bar_chart</mat-icon>
+          <p class="card-label">Stratégies</p>
+        </mat-card-content>
+      </mat-card>
 
-    <mat-card appearance="outlined" class="action-card" routerLink="/settings">
-      <mat-card-content>
-        <mat-icon>settings</mat-icon>
-        <p>Paramètres</p>
-      </mat-card-content>
-    </mat-card>
+      <!-- Marché suivis -->
+      <mat-card appearance="outlined" class="card-marche" routerLink="/data">
+        <mat-card-content>
+          <mat-icon>candlestick_chart</mat-icon>
+          <p class="card-label">Marché suivis</p>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Lancer un backtest -->
+      <mat-card appearance="filled" class="card-launch" routerLink="/backtests">
+        <mat-card-content>
+          <mat-icon>play_circle</mat-icon>
+          <p class="card-label">Lancer un backtest</p>
+        </mat-card-content>
+      </mat-card>
+
+    </div>
   </div>
 
 </div>
-
-<button mat-fab extended color="primary" class="fab-backtest" routerLink="/backtests">
-  <mat-icon>play_arrow</mat-icon>
-  Lancer un backtest
-</button>
