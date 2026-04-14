@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -21,7 +22,7 @@ export class Login implements OnInit {
   }
 
   loginWithGoogle() {
-    window.location.href = 'http://127.0.0.1:8000/api/auth/login';
+    window.location.href = `${environment.apiUrl}/api/auth/login`;
   }
 
   enterDemo() {
