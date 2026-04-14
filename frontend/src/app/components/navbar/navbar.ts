@@ -27,7 +27,7 @@ export class Navbar implements OnInit {
   isDemo = signal(false);
 
   ngOnInit() {
-    this.isDemo.set(this.auth.isDemoMode());
+    this.auth.demo$.subscribe((d) => this.isDemo.set(d));
     this.auth.user$.subscribe((u) => this.user.set(u));
   }
 

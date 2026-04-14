@@ -83,4 +83,15 @@ export class DataService {
   deleteBacktest(id: number): Observable<void> {
     return this.http.delete<void>(`http://127.0.0.1:8000/api/history/${id}`);
   }
+
+  updateUsername(userId: number, username: string): Observable<{ id: number; username: string; email: string }> {
+    return this.http.patch<{ id: number; username: string; email: string }>(
+      `http://127.0.0.1:8000/api/auth/users/${userId}`,
+      { username }
+    );
+  }
+
+  deleteAccount(userId: number): Observable<void> {
+    return this.http.delete<void>(`http://127.0.0.1:8000/api/auth/users/${userId}`);
+  }
 }

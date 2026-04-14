@@ -87,3 +87,34 @@ def logout(request: Request):
     """Supprime la session et redirige vers le frontend."""
     request.session.clear()
     return RedirectResponse(url=FRONTEND_URL)
+
+
+class UpdateUserRequest(BaseModel):
+    username: str
+
+
+@router.patch("/users/{user_id}", response_model=UserResponse)
+def update_user(user_id: int, body: UpdateUserRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+    if db.query(User).filter(User.username == body.username, User.id != user_id).first():
+        raise HTTPException(status_code=400, detail="Nom d'utilisateur déjà pris")
+    user.username = body.username
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.delete("/users/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    from models import Backtest, SavedStrategy, Watchlist
+    db.query(Backtest).filter(Backtest.user_id == user_id).delete()
+    db.query(SavedStrategy).filter(SavedStrategy.user_id == user_id).delete()
+    db.query(Watchlist).filter(Watchlist.user_id == user_id).delete()
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+    db.delete(user)
+    db.commit()
+    return {"ok": True}
