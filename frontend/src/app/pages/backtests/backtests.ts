@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -39,7 +40,8 @@ const DEFAULT_PARAMS: Record<string, Record<string, number>> = {
 })
 export class Backtests {
   private dataService = inject(DataService);
-  private auth = inject(AuthService);
+  private auth        = inject(AuthService);
+  private router      = inject(Router);
 
   ticker   = signal<string>('sp500');
   period   = signal<string>('1Y');
@@ -79,6 +81,7 @@ export class Backtests {
       next: (data) => {
         this.result.set(data);
         this.isLoading.set(false);
+        this.router.navigate(['/results'], { state: { result: data } });
       },
       error: (err) => {
         const detail = err?.error?.detail ?? 'Impossible de joindre le serveur.';

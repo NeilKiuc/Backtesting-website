@@ -1,82 +1,121 @@
-<div class="results-container">
-  <h2>Historique des backtests</h2>
+<div class="results-page">
 
-  @if (isDemo()) {
-    <p>Connectez-vous pour voir votre historique.</p>
-  } @else if (loading()) {
-    <p>Chargement...</p>
-  } @else if (history().length === 0) {
-    <p>Aucun backtest effectué pour l'instant.</p>
-  } @else {
-    <mat-card appearance="outlined">
-      <table mat-table [dataSource]="history()" matSort class="full-width">
+  <div class="page-header">
+    <button mat-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon> Retour
+    </button>
+    <h1>Résultats du backtest</h1>
+  </div>
 
-        <ng-container matColumnDef="created_at">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
-          <td mat-cell *matCellDef="let row">{{ row.created_at | date:'dd/MM/yy HH:mm' }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="ticker">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Ticker</th>
-          <td mat-cell *matCellDef="let row"><strong>{{ row.ticker }}</strong></td>
-        </ng-container>
-
-        <ng-container matColumnDef="strategy">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Stratégie</th>
-          <td mat-cell *matCellDef="let row">{{ row.strategy }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="period">
-          <th mat-header-cell *matHeaderCellDef>Période</th>
-          <td mat-cell *matCellDef="let row">{{ row.period }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="total_return_strat">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Retour strat</th>
-          <td mat-cell *matCellDef="let row" [class.positive]="row.total_return_strat > 0" [class.negative]="row.total_return_strat < 0">
-            {{ pct(row.total_return_strat) }}
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="total_return_market">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Retour marché</th>
-          <td mat-cell *matCellDef="let row" [class.positive]="row.total_return_market > 0" [class.negative]="row.total_return_market < 0">
-            {{ pct(row.total_return_market) }}
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="sharpe_ratio">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Sharpe</th>
-          <td mat-cell *matCellDef="let row">{{ row.sharpe_ratio | number:'1.2-2' }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="max_drawdown">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Drawdown</th>
-          <td mat-cell *matCellDef="let row" class="negative">{{ pct(row.max_drawdown) }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="n_trades">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Trades</th>
-          <td mat-cell *matCellDef="let row">{{ row.n_trades }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="win_rate">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Win rate</th>
-          <td mat-cell *matCellDef="let row">{{ pct(row.win_rate) }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let row">
-            <button mat-icon-button color="warn" (click)="delete(row.id)" matTooltip="Supprimer">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="columns"></tr>
-        <tr mat-row *matRowDef="let row; columns: columns"></tr>
-      </table>
-    </mat-card>
+  @if (!result()) {
+    <div class="empty-state">
+      <mat-icon>info</mat-icon>
+      <p>Aucun résultat disponible. Lancez un backtest depuis la page <a (click)="goBack()" style="cursor:pointer;color:#4fc3f7">Backtests</a>.</p>
+    </div>
   }
+
+  @if (result(); as res) {
+
+    <p class="subtitle">
+      {{ res.ticker }} — {{ res.strategy.toUpperCase() }}
+    </p>
+
+    <div class="stats-grid">
+      <mat-card>
+        <mat-card-content>
+          <div class="stat-label">Rendement stratégie</div>
+          <div class="stat-value"
+               [class.positive]="res.stats.total_return_strat > 0"
+               [class.negative]="res.stats.total_return_strat < 0">
+            {{ pct(res.stats.total_return_strat) }}
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-content>
+          <div class="stat-label">Rendement marché</div>
+          <div class="stat-value"
+               [class.positive]="res.stats.total_return_market > 0"
+               [class.negative]="res.stats.total_return_market < 0">
+            {{ pct(res.stats.total_return_market) }}
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-content>
+          <div class="stat-label">Ratio de Sharpe</div>
+          <div class="stat-value">{{ res.stats.sharpe_ratio.toFixed(2) }}</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-content>
+          <div class="stat-label">Drawdown max</div>
+          <div class="stat-value negative">{{ pct(res.stats.max_drawdown) }}</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-content>
+          <div class="stat-label">Trades</div>
+          <div class="stat-value">{{ res.stats.n_trades }}</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-content>
+          <div class="stat-label">Win rate</div>
+          <div class="stat-value">{{ pct(res.stats.win_rate) }}</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Courbe d'équité</mat-card-title>
+        <mat-card-subtitle>
+          <span class="legend-strat">— Stratégie</span>
+          &nbsp;&nbsp;
+          <span class="legend-market">— Marché (buy &amp; hold)</span>
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <app-equity-chart [equityCurve]="res.equity_curve" />
+      </mat-card-content>
+    </mat-card>
+
+    @if (res.signals.length > 0) {
+      <mat-card class="signals-card">
+        <mat-card-header>
+          <mat-card-title>Signaux ({{ res.signals.length }} barres)</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  @for (key of signalKeys(); track key) {
+                    <th>{{ key }}</th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of res.signals; track $index) {
+                  <tr>
+                    @for (key of signalKeys(); track key) {
+                      <td>{{ row[key] }}</td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+
+  }
+
 </div>
