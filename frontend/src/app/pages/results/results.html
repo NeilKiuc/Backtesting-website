@@ -1,0 +1,82 @@
+<div class="results-container">
+  <h2>Historique des backtests</h2>
+
+  @if (isDemo()) {
+    <p>Connectez-vous pour voir votre historique.</p>
+  } @else if (loading()) {
+    <p>Chargement...</p>
+  } @else if (history().length === 0) {
+    <p>Aucun backtest effectué pour l'instant.</p>
+  } @else {
+    <mat-card appearance="outlined">
+      <table mat-table [dataSource]="history()" matSort class="full-width">
+
+        <ng-container matColumnDef="created_at">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+          <td mat-cell *matCellDef="let row">{{ row.created_at | date:'dd/MM/yy HH:mm' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="ticker">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Ticker</th>
+          <td mat-cell *matCellDef="let row"><strong>{{ row.ticker }}</strong></td>
+        </ng-container>
+
+        <ng-container matColumnDef="strategy">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Stratégie</th>
+          <td mat-cell *matCellDef="let row">{{ row.strategy }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="period">
+          <th mat-header-cell *matHeaderCellDef>Période</th>
+          <td mat-cell *matCellDef="let row">{{ row.period }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="total_return_strat">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Retour strat</th>
+          <td mat-cell *matCellDef="let row" [class.positive]="row.total_return_strat > 0" [class.negative]="row.total_return_strat < 0">
+            {{ pct(row.total_return_strat) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="total_return_market">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Retour marché</th>
+          <td mat-cell *matCellDef="let row" [class.positive]="row.total_return_market > 0" [class.negative]="row.total_return_market < 0">
+            {{ pct(row.total_return_market) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="sharpe_ratio">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Sharpe</th>
+          <td mat-cell *matCellDef="let row">{{ row.sharpe_ratio | number:'1.2-2' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="max_drawdown">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Drawdown</th>
+          <td mat-cell *matCellDef="let row" class="negative">{{ pct(row.max_drawdown) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="n_trades">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Trades</th>
+          <td mat-cell *matCellDef="let row">{{ row.n_trades }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="win_rate">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Win rate</th>
+          <td mat-cell *matCellDef="let row">{{ pct(row.win_rate) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let row">
+            <button mat-icon-button color="warn" (click)="delete(row.id)" matTooltip="Supprimer">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns"></tr>
+      </table>
+    </mat-card>
+  }
+</div>

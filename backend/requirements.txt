@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+starlette
+pydantic[email]
+
+sqlalchemy
+psycopg2-binary
+python-dotenv
+
+pandas
+numpy
+yfinance
+
+authlib
+httpx
+itsdangerous
