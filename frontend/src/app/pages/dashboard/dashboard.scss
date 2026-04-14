@@ -59,10 +59,16 @@
     }
   }
 
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  mat-card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding-top: 20px;
+
+    mat-icon { font-size: 2rem; width: 2rem; height: 2rem; color: var(--mat-sys-primary); }
+    p { margin: 0; font-size: 0.85rem; font-weight: 500; }
   }
-}
 
 .card-label {
   text-align: center;

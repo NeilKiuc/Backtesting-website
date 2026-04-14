@@ -1,0 +1,12 @@
+.results-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.positive { color: #4caf50; font-weight: 500; }
+.negative { color: #f44336; font-weight: 500; }

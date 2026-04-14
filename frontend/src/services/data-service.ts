@@ -18,6 +18,22 @@ export interface BacktestRequest {
   params: Record<string, number>;
   capital_initial?: number;
   stop_loss?: number;
+  user_id?: number;
+}
+
+export interface BacktestRecord {
+  id: number;
+  ticker: string;
+  strategy: string;
+  period: string;
+  params: Record<string, number>;
+  total_return_strat: number;
+  total_return_market: number;
+  sharpe_ratio: number;
+  max_drawdown: number;
+  n_trades: number;
+  win_rate: number;
+  created_at: string;
 }
 
 export interface BacktestStats {
@@ -57,6 +73,14 @@ export class DataService {
   }
 
   runBacktest(request: BacktestRequest): Observable<BacktestResult> {
-    return this.http.post<BacktestResult>('http://localhost:8000/api/backtest', request);
+    return this.http.post<BacktestResult>('http://127.0.0.1:8000/api/backtest', request);
+  }
+
+  getHistory(userId: number): Observable<BacktestRecord[]> {
+    return this.http.get<BacktestRecord[]>(`http://127.0.0.1:8000/api/history/${userId}`);
+  }
+
+  deleteBacktest(id: number): Observable<void> {
+    return this.http.delete<void>(`http://127.0.0.1:8000/api/history/${id}`);
   }
 }

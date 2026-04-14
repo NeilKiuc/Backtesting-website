@@ -8,6 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DataService, BacktestResult } from '../../../services/data-service';
+import { AuthService } from '../../../services/auth.service';
 
 const TICKER_MAP: Record<string, string> = {
   sp500:  '^GSPC',
@@ -38,6 +39,7 @@ const DEFAULT_PARAMS: Record<string, Record<string, number>> = {
 })
 export class Backtests {
   private dataService = inject(DataService);
+  private auth = inject(AuthService);
 
   ticker   = signal<string>('sp500');
   period   = signal<string>('1Y');
@@ -72,6 +74,7 @@ export class Backtests {
       period:   this.period(),
       strategy: this.strategy(),
       params:   this.params(),
+      user_id:  this.auth.getUser()?.id,
     }).subscribe({
       next: (data) => {
         this.result.set(data);

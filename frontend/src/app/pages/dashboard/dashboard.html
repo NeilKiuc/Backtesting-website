@@ -1,8 +1,14 @@
 <div class="dashboard-wrapper">
 
+  <!-- Header -->
   <div class="dashboard-header">
-    <h1>Dashboard</h1>
-    <p class="subtitle">Bienvenue sur votre plateforme de backtesting</p>
+    @if (isDemo()) {
+      <h1>Bienvenue</h1>
+      <p class="subtitle">Vous êtes en mode démo — connectez-vous pour sauvegarder vos backtests.</p>
+    } @else {
+      <h1>Bonjour, {{ user()?.username }} 👋</h1>
+      <p class="subtitle">Voici un résumé de votre activité</p>
+    }
   </div>
 
   <div class="main-grid">
@@ -23,11 +29,17 @@
 
     <mat-card appearance="outlined" class="card-marche" routerLink="/data">
       <mat-card-content>
-        <mat-icon>show_chart</mat-icon>
-        <p class="card-label">Marché suivis</p>
+        <mat-icon>assessment</mat-icon>
+        <p>Résultats</p>
       </mat-card-content>
     </mat-card>
 
+    <mat-card appearance="outlined" class="action-card" routerLink="/settings">
+      <mat-card-content>
+        <mat-icon>settings</mat-icon>
+        <p>Paramètres</p>
+      </mat-card-content>
+    </mat-card>
   </div>
 
 </div>
