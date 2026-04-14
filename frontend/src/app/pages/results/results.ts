@@ -1,102 +1,58 @@
-import { Component, inject, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common';
+import { MatTableModule } from '@angular/material/table';
+import { MatSortModule } from '@angular/material/sort';
+import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { createChart, LineSeries, ColorType, IChartApi } from 'lightweight-charts';
-import type { UTCTimestamp } from 'lightweight-charts';
-import { BacktestResult } from '../../../services/backtest.service';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { DataService, BacktestRecord } from '../../../services/data-service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-results',
-  imports: [MatButtonModule],
+  imports: [
+    DatePipe, DecimalPipe,
+    MatTableModule, MatSortModule, MatCardModule,
+    MatButtonModule, MatIconModule, MatTooltipModule,
+  ],
   templateUrl: './results.html',
   styleUrl: './results.scss',
 })
-export class Results implements OnInit, AfterViewInit, OnDestroy {
-  private router = inject(Router);
+export class Results implements OnInit {
+  private dataService = inject(DataService);
+  private auth = inject(AuthService);
 
-  result: BacktestResult | null = null;
+  columns = ['created_at', 'ticker', 'strategy', 'period',
+             'total_return_strat', 'total_return_market',
+             'sharpe_ratio', 'max_drawdown', 'n_trades', 'win_rate', 'actions'];
 
-  @ViewChild('chartHost', { static: false })
-  private chartHostRef!: ElementRef<HTMLDivElement>;
-
-  private chart: IChartApi | null = null;
+  history = signal<BacktestRecord[]>([]);
+  isDemo  = signal(false);
+  loading = signal(true);
 
   ngOnInit() {
-    const state = history.state as { result: BacktestResult } | undefined;
-    if (state?.result) {
-      this.result = state.result;
+    if (this.auth.isDemoMode()) {
+      this.isDemo.set(true);
+      this.loading.set(false);
+      return;
     }
-  }
+    const user = this.auth.getUser();
+    if (!user) return;
 
-  ngAfterViewInit() {
-    if (this.result) {
-      this.buildChart();
-    }
-  }
-
-  ngOnDestroy() {
-    this.chart = null;
-  }
-
-  retour() {
-    this.router.navigate(['/backtests']);
-  }
-
-  formatPct(value: number): string {
-    const sign = value >= 0 ? '+' : '';
-    return `${sign}${(value * 100).toFixed(2)} %`;
-  }
-
-  isPositive(value: number): boolean {
-    return value >= 0;
-  }
-
-  private buildChart() {
-    if (!this.chartHostRef || !this.result) return;
-
-    const host = this.chartHostRef.nativeElement;
-
-    this.chart = createChart(host, {
-      autoSize: true,
-      layout: {
-        background: { type: ColorType.Solid, color: '#0f1216' },
-        textColor: '#d1d4dc',
-      },
-      grid: {
-        vertLines: { color: 'rgba(255,255,255,0.06)' },
-        horzLines: { color: 'rgba(255,255,255,0.06)' },
-      },
-      timeScale: { timeVisible: false },
+    this.dataService.getHistory(user.id).subscribe({
+      next: (data) => { this.history.set(data); this.loading.set(false); },
+      error: () => this.loading.set(false),
     });
+  }
 
-    const stratSeries = this.chart.addSeries(LineSeries, {
-      color: '#4da3ff',
-      lineWidth: 2,
-      title: 'Stratégie',
+  delete(id: number) {
+    this.dataService.deleteBacktest(id).subscribe(() => {
+      this.history.update((h) => h.filter((r) => r.id !== id));
     });
+  }
 
-    const marketSeries = this.chart.addSeries(LineSeries, {
-      color: '#888888',
-      lineWidth: 2,
-      title: 'Marché',
-    });
-
-    const toTimestamp = (timeStr: string): UTCTimestamp => {
-      return Math.floor(Date.parse(timeStr.replace(' ', 'T')) / 1000) as UTCTimestamp;
-    };
-
-    const sorted = [...this.result.equity_curve].sort(
-      (a, b) => toTimestamp(a.Time) - toTimestamp(b.Time)
-    );
-
-    stratSeries.setData(
-      sorted.map((p) => ({ time: toTimestamp(p.Time), value: p.cumulative_strat }))
-    );
-
-    marketSeries.setData(
-      sorted.map((p) => ({ time: toTimestamp(p.Time), value: p.cumulative_market }))
-    );
-
-    this.chart.timeScale().fitContent();
+  pct(v: number): string {
+    return (v * 100).toFixed(2) + '%';
   }
 }

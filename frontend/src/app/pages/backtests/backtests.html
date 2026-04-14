@@ -1,83 +1,133 @@
 <div class="page-container">
   <h1>Lancer un Backtest</h1>
 
-  <!-- Message d'erreur (visible seulement si errorMessage est non-null) -->
-  @if (errorMessage()) {
-    <div class="error-banner">{{ errorMessage() }}</div>
-  }
+<!-- ── Formulaire ──────────────────────────────────────────────────────── -->
+<div class="form-row">
+  <mat-form-field>
+    <mat-label>Indice</mat-label>
+    <mat-select [value]="ticker()" (selectionChange)="ticker.set($event.value)">
+      <mat-option value="sp500">S&amp;P 500</mat-option>
+      <mat-option value="nasdaq">Nasdaq</mat-option>
+      <mat-option value="nq">Nasdaq Futures</mat-option>
+    </mat-select>
+  </mat-form-field>
 
-  <!-- Spinner pendant le chargement des stratégies -->
-  @if (isLoadingStrategies()) {
-    <div class="spinner-container">
-      <mat-spinner diameter="40" />
-    </div>
-  } @else {
+  <mat-form-field>
+    <mat-label>Période</mat-label>
+    <mat-select [value]="period()" (selectionChange)="period.set($event.value)">
+      <mat-option value="1M">1 Mois</mat-option>
+      <mat-option value="1Y">1 An</mat-option>
+      <mat-option value="5Y">5 Ans</mat-option>
+    </mat-select>
+  </mat-form-field>
 
-    <form class="backtest-form" (ngSubmit)="lancer()">
+  <mat-form-field>
+    <mat-label>Stratégie</mat-label>
+    <mat-select [value]="strategy()" (selectionChange)="onStrategyChange($event.value)">
+      <mat-option value="macd">MACD</mat-option>
+      <mat-option value="rsi">RSI</mat-option>
+      <mat-option value="ma_crossover">MA Crossover</mat-option>
+    </mat-select>
+  </mat-form-field>
+</div>
 
-      <!-- LIGNE 1 : Ticker et Période -->
-      <div class="form-row">
-
-        <mat-form-field appearance="outline">
-          <mat-label>Ticker</mat-label>
-          <input matInput [(ngModel)]="ticker" name="ticker" placeholder="ex: AAPL" required />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Période</mat-label>
-          <mat-select [(ngModel)]="period" name="period">
-            <mat-option value="1M">1 Mois</mat-option>
-            <mat-option value="1Y">1 An</mat-option>
-            <mat-option value="5Y">5 Ans</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-      </div>
-
-      <!-- LIGNE 2 : Stratégie et Capital -->
-      <div class="form-row">
-
-        <mat-form-field appearance="outline">
-          <mat-label>Stratégie</mat-label>
-          <mat-select [(ngModel)]="selectedStrategy" name="strategy" (ngModelChange)="onStrategyChange()">
-            @for (strat of strategies(); track strat) {
-              <mat-option [value]="strat">{{ strat }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Capital initial (€)</mat-label>
-          <input matInput type="number" [(ngModel)]="capitalInitial" name="capital" />
-        </mat-form-field>
-
-      </div>
-
-      <!-- LIGNE 3 : Paramètres dynamiques de la stratégie -->
-      @if (currentParams.length > 0) {
-        <div class="params-section">
-          <h3>Paramètres de la stratégie</h3>
-          <div class="form-row">
-            @for (param of currentParams; track param.key) {
-              <mat-form-field appearance="outline">
-                <mat-label>{{ param.label }}</mat-label>
-                <input matInput type="number" [(ngModel)]="paramValues[param.key]" [name]="param.key" />
-              </mat-form-field>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- BOUTON de soumission -->
-      <button mat-flat-button color="primary" type="submit" [disabled]="isRunning()">
-        @if (isRunning()) {
-          <mat-spinner diameter="20" />
-          Calcul en cours...
-        } @else {
-          Lancer le backtest
-        }
-      </button>
-
-    </form>
+<!-- ── Paramètres dynamiques ──────────────────────────────────────────── -->
+<div class="form-row params-row">
+  @for (key of paramKeys(); track key) {
+    <mat-form-field class="param-field">
+      <mat-label>{{ key }}</mat-label>
+      <input matInput type="number"
+             [value]="params()[key]"
+             (change)="updateParam(key, $any($event.target).value)" />
+    </mat-form-field>
   }
 </div>
+
+<button mat-raised-button color="primary" (click)="runBacktest()" [disabled]="isLoading()">
+  <mat-icon>play_arrow</mat-icon> Lancer le backtest
+</button>
+
+<!-- ── Loading / Error ────────────────────────────────────────────────── -->
+@if (isLoading()) {
+  <div class="center-status">
+    <mat-spinner diameter="40"></mat-spinner>
+    <span>Calcul en cours...</span>
+  </div>
+}
+
+@if (errorMessage()) {
+  <p class="error"><mat-icon>error</mat-icon> {{ errorMessage() }}</p>
+}
+
+<!-- ── Résultats ──────────────────────────────────────────────────────── -->
+@if (result(); as res) {
+  <div class="results">
+
+    <!-- Stats cards -->
+    <div class="stats-grid">
+      <mat-card>
+        <mat-card-content>
+          <div class="stat-label">Rendement stratégie</div>
+          <div class="stat-value" [class.positive]="res.stats.total_return_strat > 0"
+                                  [class.negative]="res.stats.total_return_strat < 0">
+            {{ pct(res.stats.total_return_strat) }}
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-content>
+          <div class="stat-label">Rendement marché</div>
+          <div class="stat-value" [class.positive]="res.stats.total_return_market > 0"
+                                  [class.negative]="res.stats.total_return_market < 0">
+            {{ pct(res.stats.total_return_market) }}
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-content>
+          <div class="stat-label">Ratio de Sharpe</div>
+          <div class="stat-value">{{ res.stats.sharpe_ratio }}</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-content>
+          <div class="stat-label">Drawdown max</div>
+          <div class="stat-value negative">{{ pct(res.stats.max_drawdown) }}</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-content>
+          <div class="stat-label">Trades</div>
+          <div class="stat-value">{{ res.stats.n_trades }}</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-content>
+          <div class="stat-label">Win rate</div>
+          <div class="stat-value">{{ pct(res.stats.win_rate) }}</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Courbe d'équité -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Courbe d'équité</mat-card-title>
+        <mat-card-subtitle>
+          <span class="legend-strat">— Stratégie</span>
+          &nbsp;&nbsp;
+          <span class="legend-market">— Marché (buy &amp; hold)</span>
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div [innerHTML]="equitySvg()"></div>
+      </mat-card-content>
+    </mat-card>
+
+  </div>
+}
