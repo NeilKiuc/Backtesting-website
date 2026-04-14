@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DataService, BacktestResult } from '../../../services/data-service';
 import { AuthService } from '../../../services/auth.service';
+import { BacktestHistoryService } from '../../../services/backtest-history.service';
 
 const TICKER_MAP: Record<string, string> = {
   sp500:  '^GSPC',
@@ -42,6 +43,7 @@ export class Backtests {
   private dataService = inject(DataService);
   private auth        = inject(AuthService);
   private router      = inject(Router);
+  private historyService = inject(BacktestHistoryService);
 
   ticker   = signal<string>('sp500');
   period   = signal<string>('1Y');
@@ -79,6 +81,7 @@ export class Backtests {
       user_id:  this.auth.getUser()?.id,
     }).subscribe({
       next: (data) => {
+        this.historyService.push(data);
         this.result.set(data);
         this.isLoading.set(false);
         this.router.navigate(['/results'], { state: { result: data } });
