@@ -8,5 +8,9 @@
   width: 100%;
 }
 
+.table-card {
+  overflow-x: auto;
+}
+
 .positive { color: #4caf50; font-weight: 500; }
 .negative { color: #f44336; font-weight: 500; }

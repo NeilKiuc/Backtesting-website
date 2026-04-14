@@ -8,7 +8,7 @@
   } @else if (history().length === 0) {
     <p>Aucun backtest effectué pour l'instant.</p>
   } @else {
-    <mat-card appearance="outlined">
+    <mat-card appearance="outlined" class="table-card">
       <table mat-table [dataSource]="history()" matSort class="full-width">
 
         <ng-container matColumnDef="created_at">
