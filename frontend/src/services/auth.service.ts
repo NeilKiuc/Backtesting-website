@@ -18,6 +18,9 @@ export class AuthService {
   private userSubject = new BehaviorSubject<UserInfo | null>(this.getUser());
   user$ = this.userSubject.asObservable();
 
+  private demoSubject = new BehaviorSubject<boolean>(this.isDemoMode());
+  demo$ = this.demoSubject.asObservable();
+
   saveUser(user: UserInfo) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
     this.userSubject.next(user);
@@ -30,6 +33,7 @@ export class AuthService {
 
   setDemoMode() {
     localStorage.setItem(DEMO_KEY, 'true');
+    this.demoSubject.next(true);
   }
 
   isDemoMode(): boolean {
@@ -44,6 +48,7 @@ export class AuthService {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(DEMO_KEY);
     this.userSubject.next(null);
+    this.demoSubject.next(false);
     window.location.href = '/login';
   }
 }

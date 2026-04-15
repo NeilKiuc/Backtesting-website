@@ -71,6 +71,16 @@
 .page-content {
   padding: 20px;
 }
+
+@media (max-width: 768px) {
+  .page-content {
+    padding: 12px;
+  }
+
+  .username-label {
+    display: none;
+  }
+}
 .app-title {
     cursor: pointer;
 	display: inline-flex;

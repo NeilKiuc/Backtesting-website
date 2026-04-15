@@ -1,6 +1,9 @@
 <mat-sidenav-container class="layout-container">
 
-  <mat-sidenav mode="side" opened class="sidebar">
+  <mat-sidenav #sidenav
+    [mode]="isMobile() ? 'over' : 'side'"
+    [opened]="!isMobile()"
+    class="sidebar">
     <mat-toolbar color="primary">
       <span class="app-title" routerLink="">
         <img src="assets/backtst.png" alt="Backtesting App Logo"> Backtst
@@ -8,23 +11,23 @@
     </mat-toolbar>
 
     <mat-nav-list>
-      <a mat-list-item routerLink="/dashboard">
+      <a mat-list-item routerLink="/dashboard" (click)="closeSidenavIfMobile()">
         <mat-icon matListItemIcon>dashboard</mat-icon>
         <span matListItemTitle>Dashboard</span>
       </a>
-      <a mat-list-item routerLink="/data">
+      <a mat-list-item routerLink="/data" (click)="closeSidenavIfMobile()">
         <mat-icon matListItemIcon>data_usage</mat-icon>
         <span matListItemTitle>Data</span>
       </a>
-      <a mat-list-item routerLink="/backtests">
+      <a mat-list-item routerLink="/backtests" (click)="closeSidenavIfMobile()">
         <mat-icon matListItemIcon>analytics</mat-icon>
         <span matListItemTitle>Backtests</span>
       </a>
-      <a mat-list-item routerLink="/results">
+      <a mat-list-item routerLink="/results" (click)="closeSidenavIfMobile()">
         <mat-icon matListItemIcon>bar_chart</mat-icon>
         <span matListItemTitle>Results</span>
       </a>
-      <a mat-list-item routerLink="/settings">
+      <a mat-list-item routerLink="/settings" (click)="closeSidenavIfMobile()">
         <mat-icon matListItemIcon>settings</mat-icon>
         <span matListItemTitle>Settings</span>
       </a>
@@ -34,6 +37,11 @@
   <mat-sidenav-content>
 
     <mat-toolbar class="topbar">
+      @if (isMobile()) {
+        <button mat-icon-button (click)="sidenav.toggle()" class="hamburger">
+          <mat-icon>menu</mat-icon>
+        </button>
+      }
       <span class="spacer"></span>
 
       @if (isDemo()) {
@@ -42,7 +50,7 @@
       } @else if (user()) {
         <button mat-button [matMenuTriggerFor]="userMenu" class="user-btn">
           <mat-icon>account_circle</mat-icon>
-          <span>{{ user()!.username }}</span>
+          <span class="username-label">{{ user()!.username }}</span>
           <mat-icon>arrow_drop_down</mat-icon>
         </button>
 

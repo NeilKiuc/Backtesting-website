@@ -1,6 +1,7 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
@@ -22,13 +23,23 @@ import { AuthService, UserInfo } from '../../../services/auth.service';
 export class Navbar implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
+  private breakpoints = inject(BreakpointObserver);
+
+  @ViewChild('sidenav') sidenav!: MatSidenav;
 
   user = signal<UserInfo | null>(null);
   isDemo = signal(false);
+  isMobile = signal(false);
 
   ngOnInit() {
-    this.isDemo.set(this.auth.isDemoMode());
+    this.auth.demo$.subscribe((d) => this.isDemo.set(d));
     this.auth.user$.subscribe((u) => this.user.set(u));
+    this.breakpoints.observe([Breakpoints.Handset, Breakpoints.TabletPortrait])
+      .subscribe(result => this.isMobile.set(result.matches));
+  }
+
+  closeSidenavIfMobile() {
+    if (this.isMobile()) this.sidenav.close();
   }
 
   logout() {

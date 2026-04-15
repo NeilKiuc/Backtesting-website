@@ -1,12 +1,200 @@
-.results-container {
+.results-page {
+  padding: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+
+  h1 {
+    margin: 0;
+    font-size: 1.6rem;
+  }
+}
+
+.subtitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #aaa;
+  margin: 0 0 24px;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.history-badge {
+  font-size: 0.7rem;
+  background: #1e3a5f;
+  color: #4fc3f7;
+  padding: 2px 8px;
+  border-radius: 12px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+/* Stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+
+  mat-card { text-align: center; }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: #aaa;
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 1.4rem;
+    font-weight: 600;
+
+    &.positive    { color: #66bb6a; }
+    &.negative    { color: #ef5350; }
+    &.sharpe-good { color: #66bb6a; }
+    &.sharpe-ok   { color: #ffa726; }
+    &.sharpe-bad  { color: #ef5350; }
+
+    .stat-icon {
+      font-size: 1.1rem;
+      width: 1.1rem;
+      height: 1.1rem;
+    }
+  }
+}
+
+/* Chart */
+.chart-card {
+  margin-bottom: 24px;
+
+  .legend-strat  { color: #4fc3f7; }
+  .legend-market { color: #888; }
+}
+
+/* Signals table */
+.signals-card { margin-bottom: 24px; }
+
+.table-wrapper {
+  overflow-x: auto;
+  max-height: 320px;
+  overflow-y: auto;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+
+    th, td {
+      padding: 6px 10px;
+      text-align: right;
+      white-space: nowrap;
+      border-bottom: 1px solid #333;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #1e1e1e;
+      color: #aaa;
+      font-weight: 600;
+    }
+
+    tr:hover td { background: #2a2a2a; }
+  }
+}
+
+/* History mat-table */
+.history-card { margin-bottom: 24px; }
+
+.history-mat-table {
+  width: 100%;
+
+  th.mat-header-cell {
+    color: #aaa;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  td.mat-cell {
+    font-size: 0.85rem;
+    vertical-align: middle;
+  }
+
+  /* Color classes inside cells */
+  td.positive { color: #66bb6a; font-weight: 600; }
+  td.negative { color: #ef5350; font-weight: 600; }
+  td.sharpe-good { color: #66bb6a; font-weight: 600; }
+  td.sharpe-ok   { color: #ffa726; font-weight: 600; }
+  td.sharpe-bad  { color: #ef5350; font-weight: 600; }
+
+  tr.clickable-row {
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  tr.clickable-row:hover td.mat-cell {
+    background: #252525;
+  }
+
+  tr.active-row td.mat-cell {
+    background: #1a2a3a;
+    font-weight: 600;
+  }
+
+  .active-dot {
+    font-size: 10px;
+    width: 10px;
+    height: 10px;
+    color: #4fc3f7;
+  }
+
+  .inline-icon {
+    font-size: 0.85rem;
+    width: 0.85rem;
+    height: 0.85rem;
+    vertical-align: middle;
+    margin-right: 2px;
+  }
+
+  /* Strategy chips */
+  .strategy-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+
+    &.chip-macd    { background: #0d47a1; color: #90caf9; }
+    &.chip-rsi     { background: #4a148c; color: #ce93d8; }
+    &.chip-ma      { background: #004d40; color: #80cbc4; }
+    &.chip-default { background: #333;    color: #ccc; }
+  }
+}
+
+/* Empty state */
+.empty-state {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
+  align-items: center;
+  gap: 12px;
+  padding: 48px;
+  color: #aaa;
 
-.full-width {
-  width: 100%;
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+  }
 }
-
-.positive { color: #4caf50; font-weight: 500; }
-.negative { color: #f44336; font-weight: 500; }
