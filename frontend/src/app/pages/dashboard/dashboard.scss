@@ -52,6 +52,26 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
+/* Last backtest (demo) */
+.last-backtest-card mat-card-content {
+  padding-top: 12px;
+}
+
+.last-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 16px;
+}
+
+.last-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .lbl { font-size: 0.75rem; color: var(--mat-sys-on-surface-variant); }
+  .val { font-size: 1.2rem; font-weight: 700; }
+}
+
 /* Recent */
 .recent-card mat-card-content {
   padding-top: 8px;
