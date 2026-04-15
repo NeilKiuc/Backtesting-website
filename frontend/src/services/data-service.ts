@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../environments/environment';
 
 export interface MarketData {
   Time: string;
@@ -66,32 +67,32 @@ export interface BacktestResult {
 })
 export class DataService {
   private http = inject(HttpClient);
+  private api = environment.apiUrl;
 
   getMarketData(ticker: string, period: string): Observable<MarketData[]> {
-    const url = `http://localhost:8000/api/data/${ticker}?period=${period}`;
-    return this.http.get<MarketData[]>(url);
+    return this.http.get<MarketData[]>(`${this.api}/api/data/${ticker}?period=${period}`);
   }
 
   runBacktest(request: BacktestRequest): Observable<BacktestResult> {
-    return this.http.post<BacktestResult>('http://127.0.0.1:8000/api/backtest', request);
+    return this.http.post<BacktestResult>(`${this.api}/api/backtest`, request);
   }
 
   getHistory(userId: number): Observable<BacktestRecord[]> {
-    return this.http.get<BacktestRecord[]>(`http://127.0.0.1:8000/api/history/${userId}`);
+    return this.http.get<BacktestRecord[]>(`${this.api}/api/history/${userId}`);
   }
 
   deleteBacktest(id: number): Observable<void> {
-    return this.http.delete<void>(`http://127.0.0.1:8000/api/history/${id}`);
+    return this.http.delete<void>(`${this.api}/api/history/${id}`);
   }
 
   updateUsername(userId: number, username: string): Observable<{ id: number; username: string; email: string }> {
     return this.http.patch<{ id: number; username: string; email: string }>(
-      `http://127.0.0.1:8000/api/auth/users/${userId}`,
+      `${this.api}/api/auth/users/${userId}`,
       { username }
     );
   }
 
   deleteAccount(userId: number): Observable<void> {
-    return this.http.delete<void>(`http://127.0.0.1:8000/api/auth/users/${userId}`);
+    return this.http.delete<void>(`${this.api}/api/auth/users/${userId}`);
   }
 }
