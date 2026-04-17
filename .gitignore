@@ -36,3 +36,7 @@ Thumbs.db
 
 # Memory
 memory/
+
+# Local documentation
+CLAUDE.md
+DEV_LOG.md

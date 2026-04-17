@@ -95,8 +95,22 @@ def lancer_backtest(request: BacktestRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=422, detail=f"Paramètres invalides : {e}")
 
     df_signals = strategy.compute_signals(df)
-    results    = run_backtest(df_signals)
-    stats      = results["stats"]
+
+    if df_signals.empty:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"Pas assez de données ({len(df)} barres) pour calculer les indicateurs "
+                f"avec ces paramètres. Essayez une période plus longue ou réduisez la fenêtre lente."
+            ),
+        )
+
+    try:
+        results = run_backtest(df_signals)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+    stats = results["stats"]
 
     # Sauvegarde en DB si l'utilisateur est connecté
     if request.user_id:
