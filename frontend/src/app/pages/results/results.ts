@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -8,7 +8,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { BacktestResult } from '../../../services/data-service';
 import { EquityChartComponent } from '../../components/equity-chart/equity-chart';
 import { BacktestHistoryService } from '../../../services/backtest-history.service';
-import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-results',
@@ -19,24 +18,23 @@ import { AuthService } from '../../../services/auth.service';
 export class Results implements OnInit {
   private router         = inject(Router);
   private historyService = inject(BacktestHistoryService);
-  private auth           = inject(AuthService);
 
   result          = signal<BacktestResult | null>(null);
   backtestHistory = signal<BacktestResult[]>([]);
   selectedIndex   = signal<number>(0);
-  isDemoMode      = computed(() => this.auth.isDemoMode());
 
   historyColumns = ['status', 'ticker', 'strategy', 'strat', 'market', 'sharpe', 'trades'];
 
   ngOnInit() {
+    const all = this.historyService.getAll();
+    this.backtestHistory.set(all);
+
     const data = history.state?.['result'] as BacktestResult | undefined;
-    if (data) this.result.set(data);
-    if (this.auth.isDemoMode()) {
-      const all = this.historyService.getAll();
-      this.backtestHistory.set(all);
-      if (!data && all.length > 0) {
-        this.result.set(all[0]);
-      }
+    if (data) {
+      this.result.set(data);
+      this.selectedIndex.set(0);
+    } else {
+      this.selectedIndex.set(-1);
     }
   }
 

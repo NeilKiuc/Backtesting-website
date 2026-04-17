@@ -7,10 +7,94 @@
     <h1>Résultats du backtest</h1>
   </div>
 
-  @if (!result() && backtestHistory().length === 0) {
+  @if (backtestHistory().length === 0) {
     <div class="empty-state">
       <mat-icon>info</mat-icon>
       <p>Aucun résultat disponible. Lancez un backtest depuis la page <a (click)="goBack()" style="cursor:pointer;color:#4fc3f7">Backtests</a>.</p>
+    </div>
+  }
+
+  @if (backtestHistory().length > 0) {
+    <mat-card class="history-card">
+      <mat-card-header>
+        <mat-card-title>Historique des backtests</mat-card-title>
+        <mat-card-subtitle>Cliquez sur une ligne pour afficher l'analyse complète</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <table mat-table [dataSource]="backtestHistory()" class="history-mat-table">
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let row; let i = index">
+              @if (selectedIndex() === i) {
+                <mat-icon class="active-dot" matTooltip="Affiché">fiber_manual_record</mat-icon>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="ticker">
+            <th mat-header-cell *matHeaderCellDef>Ticker</th>
+            <td mat-cell *matCellDef="let row">
+              <strong>{{ row.ticker }}</strong>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="strategy">
+            <th mat-header-cell *matHeaderCellDef>Stratégie</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="strategy-chip" [class]="strategyClass(row.strategy)">
+                {{ row.strategy.toUpperCase() }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="strat">
+            <th mat-header-cell *matHeaderCellDef>Strat</th>
+            <td mat-cell *matCellDef="let row"
+                [class.positive]="row.stats.total_return_strat > 0"
+                [class.negative]="row.stats.total_return_strat < 0">
+              <mat-icon class="inline-icon">{{ row.stats.total_return_strat >= 0 ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+              {{ pct(row.stats.total_return_strat) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="market">
+            <th mat-header-cell *matHeaderCellDef>Marché</th>
+            <td mat-cell *matCellDef="let row"
+                [class.positive]="row.stats.total_return_market > 0"
+                [class.negative]="row.stats.total_return_market < 0">
+              {{ pct(row.stats.total_return_market) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="sharpe">
+            <th mat-header-cell *matHeaderCellDef>Sharpe</th>
+            <td mat-cell *matCellDef="let row" [class]="sharpeClass(row.stats.sharpe_ratio)">
+              {{ row.stats.sharpe_ratio.toFixed(2) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="trades">
+            <th mat-header-cell *matHeaderCellDef>Trades</th>
+            <td mat-cell *matCellDef="let row">{{ row.stats.n_trades }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="historyColumns"></tr>
+          <tr mat-row
+              *matRowDef="let row; columns: historyColumns; let i = index"
+              [class.active-row]="selectedIndex() === i"
+              (click)="selectBacktest(row, i)"
+              class="clickable-row">
+          </tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (backtestHistory().length > 0 && !result()) {
+    <div class="empty-state hint">
+      <mat-icon>touch_app</mat-icon>
+      <p>Sélectionnez un backtest dans l'historique ci-dessus pour voir les détails.</p>
     </div>
   }
 
@@ -18,7 +102,7 @@
 
     <p class="subtitle">
       {{ res.ticker }} — {{ res.strategy.toUpperCase() }}
-      @if (isDemoMode() && backtestHistory().length > 1) {
+      @if (backtestHistory().length > 1) {
         <span class="history-badge">Backtest {{ selectedIndex() + 1 }} / {{ backtestHistory().length }}</span>
       }
     </p>
@@ -127,83 +211,6 @@
       </mat-card>
     }
 
-  }
-
-  @if (isDemoMode() && backtestHistory().length > 1) {
-    <mat-card class="history-card">
-      <mat-card-header>
-        <mat-card-title>Historique des backtests (démo)</mat-card-title>
-        <mat-card-subtitle>Cliquez sur une ligne pour afficher l'analyse complète</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <table mat-table [dataSource]="backtestHistory()" class="history-mat-table">
-
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let row; let i = index">
-              @if (selectedIndex() === i) {
-                <mat-icon class="active-dot" matTooltip="Affiché">fiber_manual_record</mat-icon>
-              }
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="ticker">
-            <th mat-header-cell *matHeaderCellDef>Ticker</th>
-            <td mat-cell *matCellDef="let row">
-              <strong>{{ row.ticker }}</strong>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="strategy">
-            <th mat-header-cell *matHeaderCellDef>Stratégie</th>
-            <td mat-cell *matCellDef="let row">
-              <span class="strategy-chip" [class]="strategyClass(row.strategy)">
-                {{ row.strategy.toUpperCase() }}
-              </span>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="strat">
-            <th mat-header-cell *matHeaderCellDef>Strat</th>
-            <td mat-cell *matCellDef="let row"
-                [class.positive]="row.stats.total_return_strat > 0"
-                [class.negative]="row.stats.total_return_strat < 0">
-              <mat-icon class="inline-icon">{{ row.stats.total_return_strat >= 0 ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
-              {{ pct(row.stats.total_return_strat) }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="market">
-            <th mat-header-cell *matHeaderCellDef>Marché</th>
-            <td mat-cell *matCellDef="let row"
-                [class.positive]="row.stats.total_return_market > 0"
-                [class.negative]="row.stats.total_return_market < 0">
-              {{ pct(row.stats.total_return_market) }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="sharpe">
-            <th mat-header-cell *matHeaderCellDef>Sharpe</th>
-            <td mat-cell *matCellDef="let row" [class]="sharpeClass(row.stats.sharpe_ratio)">
-              {{ row.stats.sharpe_ratio.toFixed(2) }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="trades">
-            <th mat-header-cell *matHeaderCellDef>Trades</th>
-            <td mat-cell *matCellDef="let row">{{ row.stats.n_trades }}</td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="historyColumns"></tr>
-          <tr mat-row
-              *matRowDef="let row; columns: historyColumns; let i = index"
-              [class.active-row]="selectedIndex() === i"
-              (click)="selectBacktest(row, i)"
-              class="clickable-row">
-          </tr>
-        </table>
-      </mat-card-content>
-    </mat-card>
   }
 
 </div>
