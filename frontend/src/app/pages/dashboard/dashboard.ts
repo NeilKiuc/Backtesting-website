@@ -5,13 +5,15 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatListModule } from '@angular/material/list';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../services/auth.service';
 import { DataService, BacktestRecord, BacktestResult } from '../../../services/data-service';
 import { BacktestHistoryService } from '../../../services/backtest-history.service';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [MatCardModule, MatIconModule, MatButtonModule, MatDividerModule, RouterLink, DatePipe],
+  imports: [MatCardModule, MatIconModule, MatButtonModule, MatDividerModule, MatListModule, MatProgressSpinnerModule, RouterLink, DatePipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
