@@ -1,0 +1,126 @@
+<div class="advanced-page">
+  <h1>Mode Avancé</h1>
+  <p class="subtitle">Importez vos résultats de backtest au format JSON pour les analyser.</p>
+
+  <!-- Toggle file / paste -->
+  <div class="mode-toggle">
+    <button mat-stroked-button
+            [class.active]="inputMode() === 'file'"
+            (click)="setMode('file')">
+      <mat-icon>upload_file</mat-icon> Importer un fichier
+    </button>
+    <button mat-stroked-button
+            [class.active]="inputMode() === 'paste'"
+            (click)="setMode('paste')">
+      <mat-icon>content_paste</mat-icon> Coller du JSON
+    </button>
+  </div>
+
+  <!-- File upload -->
+  @if (inputMode() === 'file') {
+    <div class="upload-zone"
+         [class.drag-over]="isDragOver()"
+         (click)="fileInput.click()"
+         (dragover)="onDragOver($event)"
+         (dragleave)="onDragLeave()"
+         (drop)="onFileDrop($event)">
+      <input #fileInput type="file" accept=".json" hidden (change)="onFileSelected($event)" />
+
+      @if (!fileName()) {
+        <mat-icon class="upload-icon">cloud_upload</mat-icon>
+        <p>Cliquez ou déposez un fichier <strong>.json</strong> ici</p>
+      } @else {
+        <div class="file-badge">
+          <mat-icon>description</mat-icon>
+          <span>{{ fileName() }}</span>
+          <button mat-icon-button (click)="clearFile(); $event.stopPropagation()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- JSON paste -->
+  @if (inputMode() === 'paste') {
+    <textarea class="json-editor"
+              [value]="jsonContent()"
+              (input)="onJsonPaste($event)"
+              placeholder='{ "metadata": { "ticker": "AAPL", ... }, "trades": [...] }'
+              spellcheck="false"
+              autocorrect="off"
+              autocapitalize="off"></textarea>
+  }
+
+  <!-- Parse error -->
+  @if (parseError()) {
+    <mat-card class="error-card">
+      <mat-card-content>
+        <div class="error-header">
+          <mat-icon>error_outline</mat-icon>
+          <strong>JSON invalide</strong>
+        </div>
+        <pre class="error-detail">{{ parseError() }}</pre>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Preview -->
+  @if (parsedJson() && !parseError()) {
+    <mat-card class="preview-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>preview</mat-icon> Aperçu
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="preview-grid">
+          <div class="preview-item">
+            <span class="label">Ticker</span>
+            <span>{{ previewSummary().ticker }}</span>
+          </div>
+          <div class="preview-item">
+            <span class="label">Stratégie</span>
+            <span>{{ previewSummary().strategy }}</span>
+          </div>
+          <div class="preview-item">
+            <span class="label">Période</span>
+            <span>{{ previewSummary().period }}</span>
+          </div>
+          <div class="preview-item">
+            <span class="label">Trades</span>
+            <span>{{ previewSummary().nTrades }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Submit -->
+  <button mat-raised-button color="primary"
+          (click)="submit()"
+          [disabled]="isLoading() || !parsedJson() || !!parseError()">
+    <mat-icon>analytics</mat-icon> Analyser
+  </button>
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="center-status">
+      <mat-spinner diameter="40"></mat-spinner>
+      <span>Analyse en cours…</span>
+    </div>
+  }
+
+  <!-- Server error -->
+  @if (errorMessage()) {
+    <mat-card class="error-card">
+      <mat-card-content>
+        <div class="error-header">
+          <mat-icon>error_outline</mat-icon>
+          <strong>Erreur de validation</strong>
+        </div>
+        <pre class="error-detail">{{ errorMessage() }}</pre>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

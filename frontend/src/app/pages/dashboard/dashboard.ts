@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { AuthService } from '../../../services/auth.service';
-import { DataService, BacktestRecord, BacktestResult } from '../../../services/data-service';
+import { DataService, BacktestRecord, NormalizedResult } from '../../../services/data-service';
 import { BacktestHistoryService } from '../../../services/backtest-history.service';
 
 @Component({
@@ -24,8 +24,8 @@ export class Dashboard implements OnInit {
   isDemo   = signal(this.auth.isDemoMode());
   history  = signal<BacktestRecord[]>([]);
   loading  = signal(true);
-  lastDemo   = signal<BacktestResult | null>(null);
-  demoHistory = signal<BacktestResult[]>([]);
+  lastDemo   = signal<NormalizedResult | null>(null);
+  demoHistory = signal<NormalizedResult[]>([]);
 
   totalBacktests = computed(() => this.history().length);
   bestReturn     = computed(() => {
@@ -39,7 +39,7 @@ export class Dashboard implements OnInit {
     const h = this.demoHistory();
     if (!h.length) return null;
     return h.reduce((best, r) =>
-      r.stats.total_return_strat > best.stats.total_return_strat ? r : best
+      r.metrics.total_return_pct > best.metrics.total_return_pct ? r : best
     );
   });
 

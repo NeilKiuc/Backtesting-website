@@ -17,7 +17,7 @@ import {
 } from 'lightweight-charts';
 import type { UTCTimestamp } from 'lightweight-charts';
 
-import type { EquityPoint } from '../../../services/data-service';
+import type { NewEquityPoint } from '../../../services/data-service';
 
 @Component({
   selector: 'app-equity-chart',
@@ -26,7 +26,7 @@ import type { EquityPoint } from '../../../services/data-service';
   styleUrl: './equity-chart.scss',
 })
 export class EquityChartComponent implements AfterViewInit, OnChanges, OnDestroy {
-  @Input() equityCurve: EquityPoint[] = [];
+  @Input() equityCurve: NewEquityPoint[] = [];
 
   @ViewChild('chartHost', { static: true })
   private chartHostRef!: ElementRef<HTMLDivElement>;
@@ -116,7 +116,7 @@ export class EquityChartComponent implements AfterViewInit, OnChanges, OnDestroy
     if (!this.chart || !this.seriesMarket || !this.seriesStrat) return;
 
     const sorted = [...(this.equityCurve ?? [])]
-      .map(p => ({ ...p, _t: this.parseTimeToSeconds(p.Time) }))
+      .map(p => ({ ...p, _t: this.parseTimeToSeconds(p.time) }))
       .filter(p => p._t !== null && Number.isFinite(p._t))
       .sort((a, b) => (a._t as number) - (b._t as number));
 
@@ -126,19 +126,17 @@ export class EquityChartComponent implements AfterViewInit, OnChanges, OnDestroy
       return;
     }
 
-    // Conversion en base 100 : (1 + rendement_cumulé) × 100
-    // Ex : cumulative_strat = 0.27 → valeur = 127 (i.e. +27%)
     this.seriesMarket.setData(
       sorted.map(p => ({
         time: p._t as UTCTimestamp,
-        value: (1 + p.cumulative_market) * 100,
+        value: p.market,
       }))
     );
 
     this.seriesStrat.setData(
       sorted.map(p => ({
         time: p._t as UTCTimestamp,
-        value: (1 + p.cumulative_strat) * 100,
+        value: p.strategy,
       }))
     );
 

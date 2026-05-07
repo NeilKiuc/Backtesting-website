@@ -31,6 +31,11 @@ export const routes: Routes = [
 		loadComponent: () => import('./pages/backtests/backtests').then((m) => m.Backtests),
 	},
 	{
+		path: 'advanced',
+		canActivate: [authGuard],
+		loadComponent: () => import('./pages/advanced/advanced').then((m) => m.Advanced),
+	},
+	{
 		path: 'results',
 		canActivate: [authGuard],
 		loadComponent: () => import('./pages/results/results').then((m) => m.Results),

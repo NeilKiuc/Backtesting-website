@@ -23,6 +23,10 @@
         <mat-icon matListItemIcon>analytics</mat-icon>
         <span matListItemTitle>Backtests</span>
       </a>
+      <a mat-list-item routerLink="/advanced" (click)="closeSidenavIfMobile()">
+        <mat-icon matListItemIcon>code</mat-icon>
+        <span matListItemTitle>Mode Avancé</span>
+      </a>
       <a mat-list-item routerLink="/results" (click)="closeSidenavIfMobile()">
         <mat-icon matListItemIcon>bar_chart</mat-icon>
         <span matListItemTitle>Results</span>

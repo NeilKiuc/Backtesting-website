@@ -37,6 +37,15 @@ Thumbs.db
 # Memory
 memory/
 
-# Local documentation
+# Local docs
 CLAUDE.md
 DEV_LOG.md
+
+# Local config
+.claude/
+.agents/
+docs/agents/
+skills-lock.json
+
+# DB
+*.db
