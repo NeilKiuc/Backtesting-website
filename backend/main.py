@@ -12,6 +12,7 @@ import os
 from database import Base, engine, get_db
 import models  # noqa: F401 — enregistre les tables SQLAlchemy avant create_all
 from models import Backtest
+from cache import get_cached_data, store_cached_data
 
 import data
 from strategies import STRATEGIES_REGISTRY
@@ -38,7 +39,15 @@ app.include_router(data.router, prefix="/api/data")
 app.include_router(auth_router, prefix="/api/auth")
 
 
-def fetch_market_data(ticker: str, period: str) -> pd.DataFrame:
+def fetch_market_data(ticker: str, period: str, db: Session | None = None) -> pd.DataFrame:
+    if db is not None:
+        cached = get_cached_data(db, ticker, period.upper())
+        if cached is not None:
+            df = pd.DataFrame(cached)
+            df["Time"] = pd.to_datetime(df["Time"])
+            df = df.set_index("Time").sort_index()
+            return df
+
     windows = {
         "1D": timedelta(days=1),
         "1M": timedelta(days=30),
@@ -57,6 +66,11 @@ def fetch_market_data(ticker: str, period: str) -> pd.DataFrame:
     df.columns = df.columns.get_level_values(0)
     df.index.name = "Time"
     df = df.sort_index()
+
+    if db is not None:
+        records = df.reset_index().assign(Time=lambda x: x["Time"].astype(str)).to_dict(orient="records")
+        store_cached_data(db, ticker, period.upper(), records)
+
     return df
 
 
@@ -80,7 +94,7 @@ def lancer_backtest(request: BacktestRequest, db: Session = Depends(get_db)):
             detail=f"Stratégie '{request.strategy}' non trouvée. Disponibles : {list(STRATEGIES_REGISTRY.keys())}"
         )
 
-    df = fetch_market_data(request.ticker, request.period)
+    df = fetch_market_data(request.ticker, request.period, db)
 
     if len(df) < 10:
         raise HTTPException(status_code=422, detail="Pas assez de données pour cette période.")

@@ -14,3 +14,6 @@ yfinance
 authlib
 httpx
 itsdangerous
+
+pytest
+freezegun
