@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, String, DateTime, Float, JSON, ForeignKey
+from sqlalchemy import Integer, String, DateTime, Float, JSON, ForeignKey, UniqueConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime, timezone
 from database import Base
@@ -52,8 +52,12 @@ class Watchlist(Base):
 
 class MarketDataCache(Base):
     __tablename__ = "market_data_cache"
+    __table_args__ = (
+        UniqueConstraint("ticker", "period", name="uq_cache_ticker_period"),
+        Index("ix_cache_ticker_period", "ticker", "period"),
+    )
     id:         Mapped[int]      = mapped_column(Integer, primary_key=True, index=True)
     ticker:     Mapped[str]      = mapped_column(String, nullable=False)
     period:     Mapped[str]      = mapped_column(String, nullable=False)
-    data:       Mapped[dict]     = mapped_column(JSON, nullable=False)
+    data:       Mapped[list]     = mapped_column(JSON, nullable=False)
     fetched_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))

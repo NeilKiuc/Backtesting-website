@@ -4,7 +4,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import yfinance as yf
 import pandas as pd
 from dotenv import load_dotenv
@@ -13,6 +13,7 @@ from database import Base, engine, get_db
 import models  # noqa: F401 — enregistre les tables SQLAlchemy avant create_all
 from models import Backtest
 from cache import get_cached_data, store_cached_data
+from data import TICKER_MAP
 
 import data
 from strategies import STRATEGIES_REGISTRY
@@ -45,8 +46,11 @@ app.include_router(auth_router, prefix="/api/auth")
 
 
 def fetch_market_data(ticker: str, period: str, db: Session | None = None) -> pd.DataFrame:
+    symbol = TICKER_MAP.get(ticker.lower(), ticker)
+    period_key = period.upper()
+
     if db is not None:
-        cached = get_cached_data(db, ticker, period.upper())
+        cached = get_cached_data(db, symbol, period_key)
         if cached is not None:
             df = pd.DataFrame(cached)
             df["Time"] = pd.to_datetime(df["Time"])
@@ -59,11 +63,11 @@ def fetch_market_data(ticker: str, period: str, db: Session | None = None) -> pd
         "1Y": timedelta(days=365),
         "5Y": timedelta(days=365 * 5),
     }
-    window   = windows.get(period.upper(), timedelta(days=365))
+    window   = windows.get(period_key, timedelta(days=365))
     end      = datetime.today()
     start    = end - window
 
-    df = yf.download(ticker, start=start, end=end, auto_adjust=True)
+    df = yf.download(symbol, start=start, end=end, auto_adjust=True)
 
     if df.empty:
         raise HTTPException(status_code=404, detail=f"Ticker '{ticker}' introuvable sur Yahoo Finance.")
@@ -73,8 +77,10 @@ def fetch_market_data(ticker: str, period: str, db: Session | None = None) -> pd
     df = df.sort_index()
 
     if db is not None:
-        records = df.reset_index().assign(Time=lambda x: x["Time"].astype(str)).to_dict(orient="records")
-        store_cached_data(db, ticker, period.upper(), records)
+        records = df.reset_index().to_dict(orient="records")
+        for r in records:
+            r["Time"] = r["Time"].strftime("%Y-%m-%d")
+        store_cached_data(db, symbol, period_key, records)
 
     return df
 
@@ -220,7 +226,7 @@ async def upload_backtest(request: Request):
     return {
         "metadata": {
             **metadata,
-            "created_at": datetime.utcnow().isoformat() + "Z",
+            "created_at": datetime.now(timezone.utc).isoformat(),
         },
         "trades": trades_with_pnl,
         "metrics": metrics,
