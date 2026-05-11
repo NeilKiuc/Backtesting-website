@@ -27,6 +27,18 @@ class MACDStrategy(BaseStrategy):
     def name(self) -> str:
         return "macd"
 
+    @property
+    def description(self) -> str:
+        return "Mesure la convergence/divergence des moyennes mobiles. Signal haussier quand la ligne MACD croise au-dessus de la ligne signal."
+
+    @property
+    def category(self) -> str:
+        return "momentum"
+
+    @property
+    def default_params(self) -> dict[str, float]:
+        return {"fast": 12, "slow": 26, "signal": 9}
+
     def compute_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
 

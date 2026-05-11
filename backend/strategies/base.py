@@ -36,3 +36,15 @@ class BaseStrategy(ABC):
     def name(self) -> str:
         """Nom court de la stratégie (ex: 'macd', 'rsi', 'ma_crossover')."""
         ...
+
+    @property
+    @abstractmethod
+    def description(self) -> str: ...
+
+    @property
+    @abstractmethod
+    def category(self) -> str: ...
+
+    @property
+    @abstractmethod
+    def default_params(self) -> dict[str, float]: ...

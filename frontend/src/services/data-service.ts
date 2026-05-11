@@ -13,11 +13,24 @@ export interface MarketData {
   Volume: number;
 }
 
+export interface IndicatorConfig {
+  name: string;
+  params: Record<string, number>;
+}
+
+export interface StrategyInfo {
+  name: string;
+  description: string;
+  category: string;
+  default_params: Record<string, number>;
+}
+
 export interface BacktestRequest {
   ticker: string;
   period: string;
-  strategy: string;
-  params: Record<string, number>;
+  strategy?: string;
+  params?: Record<string, number>;
+  indicators?: IndicatorConfig[];
   capital_initial?: number;
   stop_loss?: number;
   user_id?: number;
@@ -197,16 +210,20 @@ export function normalizeOldResult(old: BacktestResult): NormalizedResult {
   };
 }
 
-export function normalizeUploadResult(upload: UploadBacktestResult): NormalizedResult {
+export function normalizeUploadResult(
+  upload: UploadBacktestResult,
+  source: 'beginner' | 'advanced' = 'advanced',
+  signals: Record<string, number | string>[] = [],
+): NormalizedResult {
   return {
-    source: 'advanced',
+    source,
     ticker: upload.metadata.ticker,
     strategy: upload.metadata.strategy,
     metrics: upload.metrics,
     equity_curve: upload.equity_curve,
     trades: upload.trades,
     custom_series: upload.custom_series,
-    signals: [],
+    signals,
   };
 }
 
@@ -221,8 +238,12 @@ export class DataService {
     return this.http.get<MarketData[]>(`${this.api}/api/data/${ticker}?period=${period}`);
   }
 
-  runBacktest(request: BacktestRequest): Observable<BacktestResult> {
-    return this.http.post<BacktestResult>(`${this.api}/api/backtest`, request);
+  runBacktest(request: BacktestRequest): Observable<UploadBacktestResult & { signals?: Record<string, number | string>[] }> {
+    return this.http.post<UploadBacktestResult & { signals?: Record<string, number | string>[] }>(`${this.api}/api/backtest`, request);
+  }
+
+  getStrategies(): Observable<{ strategies: StrategyInfo[] }> {
+    return this.http.get<{ strategies: StrategyInfo[] }>(`${this.api}/api/strategies`);
   }
 
   uploadBacktest(data: object): Observable<UploadBacktestResult> {
