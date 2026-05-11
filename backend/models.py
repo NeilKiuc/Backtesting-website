@@ -48,3 +48,12 @@ class Watchlist(Base):
     user_id:  Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"))
     ticker:   Mapped[str]        = mapped_column(String, nullable=False)
     added_at: Mapped[datetime]   = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class MarketDataCache(Base):
+    __tablename__ = "market_data_cache"
+    id:         Mapped[int]      = mapped_column(Integer, primary_key=True, index=True)
+    ticker:     Mapped[str]      = mapped_column(String, nullable=False)
+    period:     Mapped[str]      = mapped_column(String, nullable=False)
+    data:       Mapped[dict]     = mapped_column(JSON, nullable=False)
+    fetched_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))

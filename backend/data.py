@@ -1,5 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
 import yfinance as yf
+from database import get_db
+from cache import get_cached_data, store_cached_data
 
 router = APIRouter()
 
@@ -18,9 +21,14 @@ PERIOD_CONFIG = {
 
 
 @router.get("/{ticker}")
-def get_market_data(ticker: str, period: str = "1Y"):
+def get_market_data(ticker: str, period: str = "1Y", db: Session = Depends(get_db)):
     symbol = TICKER_MAP.get(ticker.lower(), ticker)
-    config = PERIOD_CONFIG.get(period.upper(), PERIOD_CONFIG["1Y"])
+    period_key = period.upper()
+    config = PERIOD_CONFIG.get(period_key, PERIOD_CONFIG["1Y"])
+
+    cached = get_cached_data(db, symbol, period_key)
+    if cached is not None:
+        return cached
 
     df = yf.download(symbol, period=config["period"], interval=config["interval"], auto_adjust=True)
 
@@ -36,4 +44,6 @@ def get_market_data(ticker: str, period: str = "1Y"):
     else:
         df["Time"] = df["Time"].dt.strftime("%Y-%m-%d")
 
-    return df[["Time", "Open", "High", "Low", "Close", "Volume"]].to_dict(orient="records")
+    records = df[["Time", "Open", "High", "Low", "Close", "Volume"]].to_dict(orient="records")
+    store_cached_data(db, symbol, period_key, records)
+    return records
