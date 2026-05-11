@@ -17,10 +17,11 @@ from data import TICKER_MAP
 
 import data
 from strategies import STRATEGIES_REGISTRY
-from backtest import run_backtest
 from auth import router as auth_router
 from validator import validate_upload
 from metrics import compute_metrics, compute_pnl_for_trades, build_equity_curve
+from trade_generator import signals_to_trades
+from combinator import combine_indicators
 
 load_dotenv()
 
@@ -85,80 +86,116 @@ def fetch_market_data(ticker: str, period: str, db: Session | None = None) -> pd
     return df
 
 
+class IndicatorConfig(BaseModel):
+    name:   str  = Field(..., example="macd")
+    params: dict = Field(default_factory=dict)
+
+
 class BacktestRequest(BaseModel):
-    ticker:          str             = Field(...,  example="AAPL")
-    period:          str             = Field("1Y", example="1Y")
-    strategy:        str             = Field(...,  example="macd")
-    params:          dict            = Field(default_factory=dict)
-    capital_initial: Optional[float] = Field(None, example=10000)
-    stop_loss:       Optional[float] = Field(None, example=0.05)
-    user_id:         Optional[int]   = Field(None)
+    ticker:          str                       = Field(...,  example="AAPL")
+    period:          str                       = Field("1Y", example="1Y")
+    strategy:        Optional[str]             = Field(None, example="macd")
+    params:          dict                      = Field(default_factory=dict)
+    indicators:      Optional[list[IndicatorConfig]] = Field(None)
+    capital_initial: Optional[float]           = Field(None, example=10000)
+    stop_loss:       Optional[float]           = Field(None, example=0.05)
+    user_id:         Optional[int]             = Field(None)
 
 
 @app.post("/api/backtest")
 def lancer_backtest(request: BacktestRequest, db: Session = Depends(get_db)):
 
-    strategy_key = request.strategy.lower()
-    if strategy_key not in STRATEGIES_REGISTRY:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Stratégie '{request.strategy}' non trouvée. Disponibles : {list(STRATEGIES_REGISTRY.keys())}"
-        )
+    if request.indicators:
+        indicator_list = [{"name": i.name, "params": i.params} for i in request.indicators]
+    elif request.strategy:
+        indicator_list = [{"name": request.strategy.lower(), "params": request.params}]
+    else:
+        raise HTTPException(status_code=400, detail="Fournir 'indicators' ou 'strategy'.")
+
+    for ind in indicator_list:
+        if ind["name"] not in STRATEGIES_REGISTRY:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Indicateur '{ind['name']}' non trouvé. Disponibles : {list(STRATEGIES_REGISTRY.keys())}",
+            )
 
     df = fetch_market_data(request.ticker, request.period, db)
 
     if len(df) < 10:
         raise HTTPException(status_code=422, detail="Pas assez de données pour cette période.")
 
-    StrategyClass = STRATEGIES_REGISTRY[strategy_key]
     try:
-        strategy = StrategyClass(**request.params)
+        df_combined = combine_indicators(df, indicator_list, STRATEGIES_REGISTRY)
     except (TypeError, ValueError) as e:
         raise HTTPException(status_code=422, detail=f"Paramètres invalides : {e}")
 
-    df_signals = strategy.compute_signals(df)
-
-    if df_signals.empty:
+    if df_combined.empty:
         raise HTTPException(
             status_code=422,
-            detail=(
-                f"Pas assez de données ({len(df)} barres) pour calculer les indicateurs "
-                f"avec ces paramètres. Essayez une période plus longue ou réduisez la fenêtre lente."
-            ),
+            detail="Pas assez de données pour calculer les indicateurs. Essayez une période plus longue.",
         )
 
-    try:
-        results = run_backtest(df_signals)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+    trades = signals_to_trades(df_combined)
+    capital = request.capital_initial or 10000
 
-    stats = results["stats"]
+    trades_with_pnl = compute_pnl_for_trades(trades)
+    metrics = compute_metrics(trades, capital)
 
-    # Sauvegarde en DB si l'utilisateur est connecté
+    first_close = float(df_combined["Close"].iloc[0])
+    last_close = float(df_combined["Close"].iloc[-1])
+    metrics["market_return_pct"] = round((last_close / first_close - 1) * 100, 2)
+
+    equity_curve = build_equity_curve(trades, capital)
+
+    for point in equity_curve:
+        date_str = point["time"]
+        matching = df_combined.index[df_combined.index.strftime("%Y-%m-%d") <= date_str]
+        if len(matching) > 0:
+            price_at_date = float(df_combined.loc[matching[-1], "Close"])
+            point["market"] = round(capital * (price_at_date / first_close), 2)
+
+    strategy_name = " + ".join(ind["name"] for ind in indicator_list)
+
+    _INTERNAL = {"Open", "High", "Low", "Volume", "Close"}
+    keep = [c for c in df_combined.columns if c not in _INTERNAL]
+    signals_df = df_combined.reset_index()[["Time"] + keep].copy()
+    signals_df["Time"] = signals_df["Time"].dt.strftime("%Y-%m-%d %H:%M:%S")
+    float_cols = signals_df.select_dtypes(include="float").columns
+    signals_df[float_cols] = signals_df[float_cols].round(4)
+    signals_list = signals_df.to_dict(orient="records")
+
     if request.user_id:
         record = Backtest(
             user_id              = request.user_id,
             ticker               = request.ticker,
-            strategy             = strategy_key,
+            strategy             = strategy_name,
             period               = request.period,
-            params               = request.params,
-            capital_initial      = request.capital_initial,
+            params               = request.params if len(indicator_list) == 1 else {"indicators": indicator_list},
+            capital_initial      = capital,
             stop_loss            = request.stop_loss,
-            total_return_strat   = stats["total_return_strat"],
-            total_return_market  = stats["total_return_market"],
-            sharpe_ratio         = stats["sharpe_ratio"],
-            max_drawdown         = stats["max_drawdown"],
-            n_trades             = stats["n_trades"],
-            win_rate             = stats["win_rate"],
+            total_return_strat   = metrics["total_return_pct"] / 100,
+            total_return_market  = (metrics["market_return_pct"] or 0) / 100,
+            sharpe_ratio         = metrics["sharpe_ratio"],
+            max_drawdown         = metrics["max_drawdown_pct"] / 100,
+            n_trades             = metrics["n_trades"],
+            win_rate             = metrics["win_rate_pct"] / 100,
         )
         db.add(record)
         db.commit()
 
     return {
-        "ticker":   request.ticker,
-        "strategy": strategy_key,
-        "params":   request.params,
-        **results,
+        "metadata": {
+            "ticker": request.ticker,
+            "period": request.period,
+            "capital_initial": capital,
+            "strategy": strategy_name,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        },
+        "trades": trades_with_pnl,
+        "metrics": metrics,
+        "equity_curve": equity_curve,
+        "custom_series": [],
+        "signals": signals_list,
     }
 
 
@@ -201,7 +238,16 @@ def delete_backtest(backtest_id: int, db: Session = Depends(get_db)):
 
 @app.get("/api/strategies")
 def list_strategies():
-    return {"strategies": list(STRATEGIES_REGISTRY.keys())}
+    result = []
+    for key, cls in STRATEGIES_REGISTRY.items():
+        instance = cls()
+        result.append({
+            "name": key,
+            "description": instance.description,
+            "category": instance.category,
+            "default_params": instance.default_params,
+        })
+    return {"strategies": result}
 
 
 @app.post("/api/backtest/upload")

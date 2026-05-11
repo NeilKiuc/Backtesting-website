@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,7 +8,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { DataService, BacktestResult, normalizeOldResult } from '../../../services/data-service';
+import { MatChipsModule } from '@angular/material/chips';
+import {
+  DataService,
+  IndicatorConfig,
+  StrategyInfo,
+  normalizeUploadResult,
+} from '../../../services/data-service';
 import { AuthService } from '../../../services/auth.service';
 import { BacktestHistoryService } from '../../../services/backtest-history.service';
 
@@ -16,12 +22,6 @@ const TICKER_MAP: Record<string, string> = {
   sp500:  '^GSPC',
   nasdaq: '^IXIC',
   nq:     'NQ=F',
-};
-
-const DEFAULT_PARAMS: Record<string, Record<string, number>> = {
-  macd:         { fast: 12, slow: 26, signal: 9 },
-  rsi:          { length: 14, overbought: 70, oversold: 30 },
-  ma_crossover: { fast: 10, slow: 30 },
 };
 
 @Component({
@@ -35,11 +35,12 @@ const DEFAULT_PARAMS: Record<string, Record<string, number>> = {
     MatCardModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatChipsModule,
   ],
   templateUrl: './backtests.html',
   styleUrl: './backtests.scss',
 })
-export class Backtests {
+export class Backtests implements OnInit {
   private dataService = inject(DataService);
   private auth        = inject(AuthService);
   private router      = inject(Router);
@@ -47,43 +48,70 @@ export class Backtests {
 
   ticker   = signal<string>('sp500');
   period   = signal<string>('1Y');
-  strategy = signal<string>('macd');
 
-  params = signal<Record<string, number>>({ ...DEFAULT_PARAMS['macd'] });
+  availableStrategies = signal<StrategyInfo[]>([]);
+  selectedIndicators  = signal<IndicatorConfig[]>([]);
 
   isLoading    = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
-  result       = signal<BacktestResult | null>(null);
 
-  onStrategyChange(value: string) {
-    this.strategy.set(value);
-    this.params.set({ ...DEFAULT_PARAMS[value] });
+  availableIndicators = computed(() => {
+    const selected = new Set(this.selectedIndicators().map(i => i.name));
+    return this.availableStrategies().filter(s => !selected.has(s.name));
+  });
+
+  ngOnInit() {
+    this.dataService.getStrategies().subscribe(res => {
+      this.availableStrategies.set(res.strategies);
+      if (this.selectedIndicators().length === 0 && res.strategies.length > 0) {
+        const first = res.strategies[0];
+        this.selectedIndicators.set([{ name: first.name, params: { ...first.default_params } }]);
+      }
+    });
   }
 
-  paramKeys(): string[] {
-    return Object.keys(this.params());
+  getStrategyInfo(name: string): StrategyInfo | undefined {
+    return this.availableStrategies().find(s => s.name === name);
   }
 
-  updateParam(key: string, value: string) {
-    this.params.update(p => ({ ...p, [key]: parseFloat(value) }));
+  addIndicator(name: string) {
+    const info = this.getStrategyInfo(name);
+    if (!info) return;
+    this.selectedIndicators.update(list => [
+      ...list,
+      { name: info.name, params: { ...info.default_params } },
+    ]);
+  }
+
+  removeIndicator(index: number) {
+    this.selectedIndicators.update(list => list.filter((_, i) => i !== index));
+  }
+
+  getParamKeys(index: number): string[] {
+    return Object.keys(this.selectedIndicators()[index].params);
+  }
+
+  updateIndicatorParam(index: number, key: string, value: string) {
+    this.selectedIndicators.update(list =>
+      list.map((ind, i) =>
+        i === index ? { ...ind, params: { ...ind.params, [key]: parseFloat(value) } } : ind
+      )
+    );
   }
 
   runBacktest() {
     this.isLoading.set(true);
     this.errorMessage.set(null);
-    this.result.set(null);
 
     this.dataService.runBacktest({
-      ticker:   TICKER_MAP[this.ticker()] ?? this.ticker(),
-      period:   this.period(),
-      strategy: this.strategy(),
-      params:   this.params(),
-      user_id:  this.auth.getUser()?.id,
+      ticker:     TICKER_MAP[this.ticker()] ?? this.ticker(),
+      period:     this.period(),
+      indicators: this.selectedIndicators(),
+      user_id:    this.auth.getUser()?.id,
     }).subscribe({
       next: (data) => {
-        const normalized = normalizeOldResult(data);
+        const normalized = normalizeUploadResult(data, 'beginner', data.signals ?? []);
         this.historyService.push(normalized);
-        this.result.set(data);
         this.isLoading.set(false);
         this.router.navigate(['/results'], { state: { result: normalized } });
       },
@@ -93,36 +121,5 @@ export class Backtests {
         this.isLoading.set(false);
       },
     });
-  }
-
-  pct(value: number): string {
-    return (value * 100).toFixed(2) + '%';
-  }
-
-  equitySvg(): string {
-    const curve = this.result()?.equity_curve;
-    if (!curve || curve.length === 0) return '';
-
-    const w = 800, h = 200, pad = 10;
-    const stratVals  = curve.map(p => p.cumulative_strat);
-    const marketVals = curve.map(p => p.cumulative_market);
-    const allVals    = [...stratVals, ...marketVals];
-    const minV = Math.min(...allVals);
-    const maxV = Math.max(...allVals);
-    const range = maxV - minV || 1;
-
-    const toX = (i: number) => pad + (i / (curve.length - 1)) * (w - 2 * pad);
-    const toY = (v: number) => h - pad - ((v - minV) / range) * (h - 2 * pad);
-
-    const toPath = (vals: number[]) =>
-      vals.map((v, i) => `${i === 0 ? 'M' : 'L'}${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
-
-    return `
-      <svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:200px">
-        <line x1="${pad}" y1="${toY(0).toFixed(1)}" x2="${w - pad}" y2="${toY(0).toFixed(1)}"
-              stroke="#555" stroke-width="1" stroke-dasharray="4,4"/>
-        <path d="${toPath(marketVals)}" fill="none" stroke="#888" stroke-width="2"/>
-        <path d="${toPath(stratVals)}"  fill="none" stroke="#4fc3f7" stroke-width="2.5"/>
-      </svg>`;
   }
 }
