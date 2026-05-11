@@ -1,11 +1,1 @@
-.error-text {
-  color: var(--t3rm-negative);
-}
-
-.chart-container {
-  background: var(--t3rm-bg-card);
-  padding: 15px;
-  border-radius: 8px;
-  width: 100%;
-  box-sizing: border-box;
-}
+:host { display: block; }

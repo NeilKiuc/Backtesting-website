@@ -4,7 +4,7 @@
   width: 100%;
   justify-content: center;
   align-items: center;
-  background: #000000;
+  background: var(--bg-0);
 }
 
 .landing-content {
@@ -24,23 +24,23 @@
   text-align: center;
 
   .brand-logo {
-    font-family: var(--t3rm-font-mono);
+    font-family: var(--mono);
     font-size: 4rem;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--accent);
     letter-spacing: 0.12em;
 
     .logo-cursor {
-      animation: blink 1s step-end infinite;
+      animation: blink 1.1s steps(2, start) infinite;
     }
   }
 
   .subtitle {
     margin: 0;
-    font-family: var(--t3rm-font-mono);
-    font-size: 0.8rem;
+    font-family: var(--mono);
+    font-size: 11px;
     font-weight: 400;
-    color: #555555;
+    color: var(--fg-3);
     letter-spacing: 0.2em;
     text-transform: uppercase;
   }
@@ -54,30 +54,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
-}
-
-.btn-google {
-  width: 100%;
-  padding: 12px 24px;
-  font-family: var(--t3rm-font-ui);
-  font-size: 0.9rem;
-  border-color: #333333;
-  color: #ffffff;
-}
-
-.btn-demo {
-  width: 100%;
-  padding: 8px 24px;
-  font-family: var(--t3rm-font-ui);
-  font-size: 0.85rem;
-  color: #555555;
 }
 
 .disclaimer {
   margin: 0;
-  font-size: 0.7rem;
-  color: #333333;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--fg-4);
   text-align: center;
+  letter-spacing: 0.06em;
 }

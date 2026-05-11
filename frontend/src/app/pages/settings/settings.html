@@ -1,386 +1,167 @@
-
-<div class="settings-wrapper">
-
-  <div class="settings-header">
-    <div class="header-text">
-      <h1>Paramètres</h1>
-      <p class="subtitle">Gérez vos préférences et paramètres de compte</p>
+<div class="page">
+  <div class="crumb">
+    <span>T3RM</span><span class="sep">/</span><span class="now">SETTINGS</span>
+  </div>
+  <div class="flex justify-between items-center mb-14" style="margin-top: 4px">
+    <h1>Paramètres</h1>
+    <div class="flex gap-8">
+      <button class="btn" (click)="resetSettings()">↺ RÉINITIALISER</button>
+      <button class="btn primary" (click)="saveSettings()" [disabled]="!hasChanges || saving">
+        {{ saving ? 'SAUVEGARDE…' : '✓ ENREGISTRER' }}
+      </button>
     </div>
   </div>
 
-  <div class="settings-container">
+  <div class="split-side">
+    <div class="flex-col gap-14">
+      <!-- Categories as sidebar-like navigation -->
+      @for (cat of categories; track cat.id) {
+        <button class="btn w-full"
+                [class.primary]="activeCategory === cat.id"
+                [class.danger]="cat.id === 'danger' && activeCategory === cat.id"
+                (click)="selectCategory(cat.id)"
+                style="justify-content: flex-start">
+          {{ cat.label.toUpperCase() }}
+        </button>
+      }
+    </div>
 
-    <!-- ── Sidebar ── -->
-    <aside class="sidebar-nav">
-      <div class="sidebar-profile">
-        <div class="avatar">
-          <mat-icon>account_circle</mat-icon>
-        </div>
-        <div class="profile-info">
-          <span class="profile-name">{{ model.username || 'Utilisateur' }}</span>
-          <span class="profile-email">{{ model.email || 'Non renseigné' }}</span>
-        </div>
-      </div>
-
-      <mat-divider></mat-divider>
-
-      <nav class="sidebar-menu">
-        @for (cat of categories; track cat.id) {
-          <button
-            class="sidebar-btn"
-            [class.active]="activeCategory === cat.id"
-            [class.danger-item]="cat.id === 'danger'"
-            (click)="selectCategory(cat.id)"
-          >
-            <mat-icon>{{ cat.icon }}</mat-icon>
-            <span>{{ cat.label }}</span>
-          </button>
-        }
-      </nav>
-    </aside>
-
-    <!-- ── Content ── -->
-    <main class="settings-content">
-
+    <div class="flex-col gap-14" style="grid-column: span 1; min-width: 0">
       <!-- Compte -->
       @if (activeCategory === 'compte') {
-        <div class="category-panel">
-          <mat-card appearance="outlined" class="settings-card">
-            <mat-card-header>
-              <mat-icon mat-card-avatar class="card-icon">person</mat-icon>
-              <mat-card-title>Informations du compte</mat-card-title>
-              <mat-card-subtitle>Modifiez vos informations personnelles</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-              <mat-form-field class="full-width" appearance="outline">
-                <mat-label>Nom d'utilisateur</mat-label>
-                <mat-icon matPrefix>account_circle</mat-icon>
-                <input matInput [(ngModel)]="model.username" (ngModelChange)="onModelChange()" placeholder="Entrez votre nom" />
-              </mat-form-field>
-              <mat-form-field class="full-width" appearance="outline">
-                <mat-label>Adresse email</mat-label>
-                <mat-icon matPrefix>email</mat-icon>
-                <input matInput type="email" [(ngModel)]="model.email" (ngModelChange)="onModelChange()" placeholder="exemple@mail.com" />
-              </mat-form-field>
-            </mat-card-content>
-          </mat-card>
+        <div class="panel">
+          <div class="panel-header"><div class="title">INFORMATIONS DU COMPTE</div></div>
+          <div class="panel-body flex-col gap-12">
+            <div class="field">
+              <label>Nom d'utilisateur</label>
+              <input class="t3rm-input" [(ngModel)]="model.username" (ngModelChange)="onModelChange()" placeholder="Entrez votre nom" />
+            </div>
+            <div class="field">
+              <label>Adresse email</label>
+              <input class="t3rm-input" type="email" [(ngModel)]="model.email" (ngModelChange)="onModelChange()" placeholder="exemple&#64;mail.com" />
+            </div>
+          </div>
         </div>
       }
 
       <!-- Apparence -->
       @if (activeCategory === 'apparence') {
-        <div class="category-panel">
-          <mat-card appearance="outlined" class="settings-card">
-            <mat-card-header>
-              <mat-icon mat-card-avatar class="card-icon">palette</mat-icon>
-              <mat-card-title>Apparence</mat-card-title>
-              <mat-card-subtitle>Personnalisez l'interface de l'application</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-
-              <div class="field-section">
-                <p class="section-label">Langue</p>
-                <mat-form-field class="full-width" appearance="outline">
-                  <mat-label>Langue de l'interface</mat-label>
-                  <mat-icon matPrefix>language</mat-icon>
-                  <mat-select [(ngModel)]="model.language" (ngModelChange)="onModelChange()">
-                    @for (lang of languages; track lang) {
-                      <mat-option [value]="lang">{{ lang }}</mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
+        <div class="panel">
+          <div class="panel-header"><div class="title">APPARENCE</div></div>
+          <div class="panel-body flex-col gap-12">
+            <div class="field">
+              <label>Langue de l'interface</label>
+              <select class="t3rm-select" [(ngModel)]="model.language" (ngModelChange)="onModelChange()">
+                @for (lang of languages; track lang) {
+                  <option [value]="lang">{{ lang }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label>Thème</label>
+              <div class="seg">
+                <button [class.on]="model.theme === 'light'" (click)="setTheme('light')">CLAIR</button>
+                <button [class.on]="model.theme === 'dark'" (click)="setTheme('dark')">SOMBRE</button>
               </div>
-
-              <div class="field-section">
-                <p class="section-label">Thème</p>
-                <div class="theme-cards">
-                  <button class="theme-card" [class.selected]="model.theme === 'light'" (click)="setTheme('light')">
-                    <div class="theme-preview light-preview">
-                      <div class="preview-bar"></div>
-                      <div class="preview-content">
-                        <div class="preview-line long"></div>
-                        <div class="preview-line short"></div>
-                      </div>
-                    </div>
-                    <div class="theme-label">
-                      <mat-icon>light_mode</mat-icon>
-                      <span>Clair</span>
-                    </div>
-                    @if (model.theme === 'light') {
-                      <mat-icon class="check-icon">check_circle</mat-icon>
-                    }
-                  </button>
-
-                  <button class="theme-card" [class.selected]="model.theme === 'dark'" (click)="setTheme('dark')">
-                    <div class="theme-preview dark-preview">
-                      <div class="preview-bar"></div>
-                      <div class="preview-content">
-                        <div class="preview-line long"></div>
-                        <div class="preview-line short"></div>
-                      </div>
-                    </div>
-                    <div class="theme-label">
-                      <mat-icon>dark_mode</mat-icon>
-                      <span>Sombre</span>
-                    </div>
-                    @if (model.theme === 'dark') {
-                      <mat-icon class="check-icon">check_circle</mat-icon>
-                    }
-                  </button>
-                </div>
-              </div>
-
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
         </div>
       }
 
       <!-- Notifications -->
       @if (activeCategory === 'notifications') {
-        <div class="category-panel">
-          <mat-card appearance="outlined" class="settings-card">
-            <mat-card-header>
-              <mat-icon mat-card-avatar class="card-icon">notifications</mat-icon>
-              <mat-card-title>Notifications</mat-card-title>
-              <mat-card-subtitle>Contrôlez comment vous recevez les alertes</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="toggle-item">
-                <div class="toggle-text">
-                  <p class="toggle-title">Notifications in-app</p>
-                  <p class="hint">Recevez les alertes directement dans l'application</p>
-                </div>
-                <mat-slide-toggle [(ngModel)]="model.notifications" (change)="onModelChange()"></mat-slide-toggle>
+        <div class="panel">
+          <div class="panel-header"><div class="title">NOTIFICATIONS</div></div>
+          <div class="panel-body flex-col gap-12">
+            <div class="flex justify-between items-center" style="padding: 6px 0; border-bottom: 1px dashed var(--border)">
+              <div>
+                <div style="font-size: 12px; color: var(--fg-0)">Notifications in-app</div>
+                <div class="muted" style="font-size: 10px">Recevez les alertes dans l'application</div>
               </div>
-              <mat-divider></mat-divider>
-              <div class="toggle-item">
-                <div class="toggle-text">
-                  <p class="toggle-title">Mises à jour par email</p>
-                  <p class="hint">Recevez les nouvelles importantes par email</p>
-                </div>
-                <mat-slide-toggle [(ngModel)]="model.emailUpdates" (change)="onModelChange()"></mat-slide-toggle>
+              <button class="btn" [class.primary]="model.notifications" (click)="model.notifications = !model.notifications; onModelChange()">
+                {{ model.notifications ? 'ON' : 'OFF' }}
+              </button>
+            </div>
+            <div class="flex justify-between items-center" style="padding: 6px 0">
+              <div>
+                <div style="font-size: 12px; color: var(--fg-0)">Mises à jour par email</div>
+                <div class="muted" style="font-size: 10px">Recevez les nouvelles par email</div>
               </div>
-            </mat-card-content>
-          </mat-card>
+              <button class="btn" [class.primary]="model.emailUpdates" (click)="model.emailUpdates = !model.emailUpdates; onModelChange()">
+                {{ model.emailUpdates ? 'ON' : 'OFF' }}
+              </button>
+            </div>
+          </div>
         </div>
       }
 
       <!-- Sécurité -->
       @if (activeCategory === 'securite') {
-        <div class="category-panel">
-          <mat-card appearance="outlined" class="settings-card">
-            <mat-card-header>
-              <mat-icon mat-card-avatar class="card-icon">security</mat-icon>
-              <mat-card-title>Sécurité</mat-card-title>
-              <mat-card-subtitle>Gérez l'accès et la protection de votre compte</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-              <mat-form-field class="full-width" appearance="outline">
-                <mat-label>Visibilité du profil</mat-label>
-                <mat-icon matPrefix>lock</mat-icon>
-                <mat-select [(ngModel)]="model.privacy" (ngModelChange)="onModelChange()">
-                  <mat-option value="public">
-                    <mat-icon>public</mat-icon> Public
-                  </mat-option>
-                  <mat-option value="private">
-                    <mat-icon>lock</mat-icon> Privé
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
-              <p class="hint">En mode privé, vos données de backtesting ne sont visibles que par vous.</p>
-              <mat-divider></mat-divider>
-              <div class="toggle-item disabled-toggle">
-                <div class="toggle-text">
-                  <p class="toggle-title">
-                    Authentification 2FA
-                    <mat-chip class="chip-soon">Bientôt</mat-chip>
-                  </p>
-                  <p class="hint">Sécurisez votre compte avec une double authentification</p>
-                </div>
-                <mat-slide-toggle disabled></mat-slide-toggle>
+        <div class="panel">
+          <div class="panel-header"><div class="title">SÉCURITÉ</div></div>
+          <div class="panel-body flex-col gap-12">
+            <div class="field">
+              <label>Visibilité du profil</label>
+              <div class="seg">
+                <button [class.on]="model.privacy === 'public'" (click)="model.privacy = 'public'; onModelChange()">PUBLIC</button>
+                <button [class.on]="model.privacy === 'private'" (click)="model.privacy = 'private'; onModelChange()">PRIVÉ</button>
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
+            <div class="muted" style="font-size: 10px">En mode privé, vos données ne sont visibles que par vous.</div>
+            <div class="flex justify-between items-center" style="padding: 6px 0; opacity: 0.4">
+              <div>
+                <div style="font-size: 12px; color: var(--fg-0)">Authentification 2FA <span class="chip">BIENTÔT</span></div>
+                <div class="muted" style="font-size: 10px">Double authentification</div>
+              </div>
+              <span class="muted">—</span>
+            </div>
+          </div>
         </div>
       }
 
       <!-- Confidentialité -->
       @if (activeCategory === 'confidentialite') {
-        <div class="category-panel">
-          <mat-card appearance="outlined" class="settings-card">
-            <mat-card-header>
-              <mat-icon mat-card-avatar class="card-icon">privacy_tip</mat-icon>
-              <mat-card-title>Politique de confidentialité</mat-card-title>
-              <mat-card-subtitle>Dernière mise à jour : 14 avril 2026</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content class="privacy-content">
-
-              <div class="privacy-intro">
-                <mat-icon class="privacy-icon-large">shield</mat-icon>
-                <p>
-                  Votre vie privée est notre priorité. Cette politique décrit comment
-                  <strong>Backtesting App</strong> collecte, utilise et protège vos données personnelles.
-                </p>
-              </div>
-
-              <mat-divider></mat-divider>
-
-              <div class="privacy-section">
-                <div class="privacy-section-header">
-                  <mat-icon>storage</mat-icon>
-                  <h3>1. Données collectées</h3>
-                </div>
-                <p>Nous collectons uniquement les données nécessaires au fonctionnement de l'application :</p>
-                <ul>
-                  <li><strong>Données de compte</strong> — nom d'utilisateur, adresse email</li>
-                  <li><strong>Préférences</strong> — thème, langue, paramètres de notifications</li>
-                  <li><strong>Données de backtesting</strong> — tickers, stratégies et résultats de vos simulations</li>
-                </ul>
-              </div>
-
-              <mat-divider></mat-divider>
-
-              <div class="privacy-section">
-                <div class="privacy-section-header">
-                  <mat-icon>manage_search</mat-icon>
-                  <h3>2. Utilisation des données</h3>
-                </div>
-                <p>Vos données sont utilisées exclusivement pour :</p>
-                <ul>
-                  <li>Faire fonctionner et améliorer l'application</li>
-                  <li>Sauvegarder vos paramètres et historiques de simulation</li>
-                  <li>Vous envoyer des notifications si vous y avez consenti</li>
-                </ul>
-                <div class="info-banner">
-                  <mat-icon>info</mat-icon>
-                  <span>Nous ne vendons, ne louons et ne partageons jamais vos données avec des tiers à des fins commerciales.</span>
-                </div>
-              </div>
-
-              <mat-divider></mat-divider>
-
-              <div class="privacy-section">
-                <div class="privacy-section-header">
-                  <mat-icon>save</mat-icon>
-                  <h3>3. Stockage des données</h3>
-                </div>
-                <p>
-                  Vos préférences sont stockées localement dans votre navigateur via <code>localStorage</code>.
-                  Aucune donnée sensible n'est transmise à des serveurs tiers.
-                </p>
-              </div>
-
-              <mat-divider></mat-divider>
-
-              <div class="privacy-section">
-                <div class="privacy-section-header">
-                  <mat-icon>cookie</mat-icon>
-                  <h3>4. Cookies</h3>
-                </div>
-                <p>
-                  L'application n'utilise pas de cookies de tracking ou publicitaires.
-                  Seuls des cookies techniques essentiels au fonctionnement peuvent être utilisés.
-                </p>
-              </div>
-
-              <mat-divider></mat-divider>
-
-              <div class="privacy-section">
-                <div class="privacy-section-header">
-                  <mat-icon>gavel</mat-icon>
-                  <h3>5. Vos droits</h3>
-                </div>
-                <p>Conformément au RGPD, vous disposez des droits suivants :</p>
-                <div class="rights-grid">
-                  <div class="right-item">
-                    <mat-icon>visibility</mat-icon>
-                    <span>Droit d'accès à vos données</span>
-                  </div>
-                  <div class="right-item">
-                    <mat-icon>edit</mat-icon>
-                    <span>Droit de rectification</span>
-                  </div>
-                  <div class="right-item">
-                    <mat-icon>delete</mat-icon>
-                    <span>Droit à l'effacement</span>
-                  </div>
-                  <div class="right-item">
-                    <mat-icon>block</mat-icon>
-                    <span>Droit d'opposition</span>
-                  </div>
-                </div>
-                <p class="hint">Pour exercer ces droits, rendez-vous dans la <strong>Zone de danger</strong> ou contactez-nous.</p>
-              </div>
-
-              <mat-divider></mat-divider>
-
-              <div class="privacy-section">
-                <div class="privacy-section-header">
-                  <mat-icon>update</mat-icon>
-                  <h3>6. Modifications</h3>
-                </div>
-                <p>
-                  Toute modification de cette politique sera signalée dans l'application.
-                  Nous vous encourageons à la consulter régulièrement.
-                </p>
-              </div>
-
-            </mat-card-content>
-          </mat-card>
+        <div class="panel">
+          <div class="panel-header"><div class="title">POLITIQUE DE CONFIDENTIALITÉ</div></div>
+          <div class="panel-body" style="font-size: 11.5px; line-height: 1.7; color: var(--fg-2)">
+            <p>Votre vie privée est notre priorité. Nous collectons uniquement les données nécessaires au fonctionnement.</p>
+            <hr class="hr-ascii">
+            <p><strong style="color: var(--fg-0)">Données collectées :</strong> nom, email, préférences, résultats de backtesting.</p>
+            <p><strong style="color: var(--fg-0)">Utilisation :</strong> fonctionnement et amélioration de l'application uniquement.</p>
+            <p><strong style="color: var(--fg-0)">Stockage :</strong> préférences en localStorage. Aucune donnée transmise à des tiers.</p>
+            <p><strong style="color: var(--fg-0)">Cookies :</strong> aucun cookie de tracking. Cookies techniques uniquement.</p>
+            <hr class="hr-ascii">
+            <p class="muted" style="font-size: 10px">Conformément au RGPD : droit d'accès, rectification, effacement, opposition. Dernière MAJ : 14/04/2026.</p>
+          </div>
         </div>
       }
 
       <!-- Zone de danger -->
       @if (activeCategory === 'danger') {
-        <div class="category-panel">
-          <mat-card appearance="outlined" class="danger-card">
-            <mat-card-header>
-              <mat-icon mat-card-avatar class="card-icon-danger">warning</mat-icon>
-              <mat-card-title>Zone de danger</mat-card-title>
-              <mat-card-subtitle>Actions irréversibles sur votre compte</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="danger-warning">
-                <mat-icon>error_outline</mat-icon>
-                <span>Les actions ci-dessous sont permanentes et ne peuvent pas être annulées.</span>
+        <div class="panel" style="border-color: var(--neg)">
+          <div class="panel-header" style="border-bottom-color: oklch(0.50 0.18 25 / 0.3)">
+            <div class="title" style="color: var(--neg)">ZONE DE DANGER</div>
+          </div>
+          <div class="panel-body flex-col gap-12">
+            <div class="neg" style="font-size: 11px; display: flex; align-items: center; gap: 8px">
+              ⚠ Les actions ci-dessous sont permanentes et irréversibles.
+            </div>
+            <div class="flex justify-between items-center">
+              <div>
+                <div style="font-size: 12px; color: var(--fg-0)">Supprimer mon compte</div>
+                <div class="muted" style="font-size: 10px">Supprime toutes vos données définitivement.</div>
               </div>
-              <div class="danger-action">
-                <div class="danger-action-text">
-                  <p class="toggle-title">Supprimer mon compte</p>
-                  <p class="hint">Supprime définitivement votre compte, vos backtests et toutes vos données.</p>
-                </div>
-                <button mat-stroked-button color="warn" (click)="deleteAccount()">
-                  <mat-icon>delete_forever</mat-icon>
-                  Supprimer
-                </button>
-              </div>
-            </mat-card-content>
-          </mat-card>
+              <button class="btn danger" (click)="deleteAccount()">SUPPRIMER</button>
+            </div>
+          </div>
         </div>
       }
-
-      <!-- Footer -->
-      <div class="settings-footer">
-        @if (hasChanges) {
-          <span class="unsaved-label">
-            <mat-icon>edit_note</mat-icon> Modifications non enregistrées
-          </span>
-        }
-        <div class="button-group">
-          <button mat-stroked-button (click)="resetSettings()" matTooltip="Remettre les valeurs par défaut">
-            <mat-icon>restart_alt</mat-icon> Réinitialiser
-          </button>
-          <button mat-raised-button color="primary" (click)="saveSettings()" [disabled]="!hasChanges || saving">
-            @if (saving) {
-              <mat-spinner diameter="18" style="display:inline-block; margin-right:8px"></mat-spinner>
-            } @else {
-              <mat-icon>save</mat-icon>
-            }
-            Enregistrer
-          </button>
-        </div>
-      </div>
-
-    </main>
+    </div>
   </div>
+
+  @if (hasChanges) {
+    <div class="flex items-center gap-8 mt-14" style="font-size: 11px; color: var(--warn)">
+      ✎ Modifications non enregistrées
+    </div>
+  }
 </div>

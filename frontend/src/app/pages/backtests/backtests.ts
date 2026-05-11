@@ -1,14 +1,6 @@
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatChipsModule } from '@angular/material/chips';
 import {
   DataService,
   IndicatorConfig,
@@ -24,19 +16,15 @@ const TICKER_MAP: Record<string, string> = {
   nq:     'NQ=F',
 };
 
+const TICKER_LABELS: Record<string, string> = {
+  sp500: 'S&P 500',
+  nasdaq: 'Nasdaq',
+  nq: 'Nasdaq Futures',
+};
+
 @Component({
   selector: 'app-backtests',
-  imports: [
-    FormsModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatInputModule,
-    MatButtonModule,
-    MatCardModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatChipsModule,
-  ],
+  imports: [FormsModule],
   templateUrl: './backtests.html',
   styleUrl: './backtests.scss',
 })
@@ -59,6 +47,8 @@ export class Backtests implements OnInit {
     const selected = new Set(this.selectedIndicators().map(i => i.name));
     return this.availableStrategies().filter(s => !selected.has(s.name));
   });
+
+  tickerLabel = computed(() => TICKER_LABELS[this.ticker()] || this.ticker());
 
   ngOnInit() {
     this.dataService.getStrategies().subscribe(res => {
@@ -122,4 +112,6 @@ export class Backtests implements OnInit {
       },
     });
   }
+
+  String = String;
 }

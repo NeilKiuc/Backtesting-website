@@ -1,20 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DataService, normalizeUploadResult } from '../../../services/data-service';
 import { BacktestHistoryService } from '../../../services/backtest-history.service';
 
 @Component({
   selector: 'app-advanced',
-  imports: [
-    MatButtonModule,
-    MatCardModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-  ],
+  imports: [],
   templateUrl: './advanced.html',
   styleUrl: './advanced.scss',
 })
