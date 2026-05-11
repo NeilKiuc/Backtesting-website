@@ -27,12 +27,12 @@ def compute_metrics(trades: list[dict], capital_initial: float) -> dict:
     durations = _trade_durations(trades)
     avg_duration = sum(durations) / len(durations) if durations else 0
 
-    time_in_market = sum(durations) / total_days * 100 if total_days > 0 else 0
+    time_in_market = min(sum(durations) / total_days * 100, 100.0) if total_days > 0 else 0
 
-    daily_returns = _estimate_daily_returns(trades, total_days)
-    sharpe = _sharpe_ratio(daily_returns)
-    sortino = _sortino_ratio(daily_returns)
-    volatility = _annualized_volatility(daily_returns)
+    trades_per_year = n_trades / years if years > 0 else n_trades
+    sharpe = _sharpe_ratio_per_trade(pnl_pcts, trades_per_year)
+    sortino = _sortino_ratio_per_trade(pnl_pcts, trades_per_year)
+    volatility = _annualized_volatility_per_trade(pnl_pcts, trades_per_year)
 
     max_dd = _max_drawdown(pnl_pcts, capital_initial)
 
@@ -46,7 +46,7 @@ def compute_metrics(trades: list[dict], capital_initial: float) -> dict:
         "max_drawdown_pct": round(max_dd, 2),
         "win_rate_pct": round(len(wins) / n_trades * 100, 2) if n_trades else 0,
         "n_trades": n_trades,
-        "profit_factor": round(sum(wins) / abs(sum(losses)), 2) if losses and sum(losses) != 0 else float("inf") if wins else 0,
+        "profit_factor": round(sum(wins) / abs(sum(losses)), 2) if losses and sum(losses) != 0 else None if wins else 0,
         "avg_win_pct": round(sum(wins) / len(wins), 2) if wins else 0,
         "avg_loss_pct": round(sum(losses) / len(losses), 2) if losses else 0,
         "max_consecutive_losses": _max_consecutive_losses(pnl_pcts),
@@ -132,57 +132,36 @@ def _trade_durations(trades: list[dict]) -> list[int]:
     return durations
 
 
-def _estimate_daily_returns(trades: list[dict], total_days: int) -> list[float]:
-    if not trades or total_days <= 0:
-        return []
-    daily = [0.0] * total_days
-    first_entry = _parse_time(trades[0]["entry_time"])
-    for t in trades:
-        pnl = _compute_pnl_pct(t)
-        entry = _parse_time(t["entry_time"])
-        exit_ = _parse_time(t["exit_time"])
-        if not entry or not exit_:
-            continue
-        duration = (exit_ - entry).days
-        if duration <= 0:
-            continue
-        daily_pnl = pnl / duration
-        start_idx = (entry - first_entry).days
-        for d in range(duration):
-            idx = start_idx + d
-            if 0 <= idx < total_days:
-                daily[idx] = daily_pnl
-    return daily
-
-
-def _sharpe_ratio(daily_returns: list[float]) -> float:
-    if len(daily_returns) < 2:
+def _sharpe_ratio_per_trade(pnl_pcts: list[float], trades_per_year: float) -> float:
+    if len(pnl_pcts) < 2:
         return 0.0
-    mean = sum(daily_returns) / len(daily_returns)
-    variance = sum((r - mean) ** 2 for r in daily_returns) / (len(daily_returns) - 1)
+    mean = sum(pnl_pcts) / len(pnl_pcts)
+    variance = sum((r - mean) ** 2 for r in pnl_pcts) / (len(pnl_pcts) - 1)
     std = math.sqrt(variance)
     if std == 0:
         return 0.0
-    return mean / std * math.sqrt(252)
+    return (mean / std) * math.sqrt(trades_per_year)
 
 
-def _sortino_ratio(daily_returns: list[float]) -> float:
-    if len(daily_returns) < 2:
+def _sortino_ratio_per_trade(pnl_pcts: list[float], trades_per_year: float) -> float:
+    if len(pnl_pcts) < 2:
         return 0.0
-    mean = sum(daily_returns) / len(daily_returns)
-    downside = [min(r, 0) ** 2 for r in daily_returns]
-    downside_dev = math.sqrt(sum(downside) / len(downside))
+    mean = sum(pnl_pcts) / len(pnl_pcts)
+    downside = [r ** 2 for r in pnl_pcts if r < 0]
+    if not downside:
+        return 0.0
+    downside_dev = math.sqrt(sum(downside) / len(pnl_pcts))
     if downside_dev == 0:
         return 0.0
-    return mean / downside_dev * math.sqrt(252)
+    return (mean / downside_dev) * math.sqrt(trades_per_year)
 
 
-def _annualized_volatility(daily_returns: list[float]) -> float:
-    if len(daily_returns) < 2:
+def _annualized_volatility_per_trade(pnl_pcts: list[float], trades_per_year: float) -> float:
+    if len(pnl_pcts) < 2:
         return 0.0
-    mean = sum(daily_returns) / len(daily_returns)
-    variance = sum((r - mean) ** 2 for r in daily_returns) / (len(daily_returns) - 1)
-    return math.sqrt(variance) * math.sqrt(252)
+    mean = sum(pnl_pcts) / len(pnl_pcts)
+    variance = sum((r - mean) ** 2 for r in pnl_pcts) / (len(pnl_pcts) - 1)
+    return math.sqrt(variance) * math.sqrt(trades_per_year)
 
 
 def _max_drawdown(pnl_pcts: list[float], capital: float) -> float:
