@@ -8,7 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { DataService, BacktestResult } from '../../../services/data-service';
+import { DataService, BacktestResult, normalizeOldResult } from '../../../services/data-service';
 import { AuthService } from '../../../services/auth.service';
 import { BacktestHistoryService } from '../../../services/backtest-history.service';
 
@@ -81,10 +81,11 @@ export class Backtests {
       user_id:  this.auth.getUser()?.id,
     }).subscribe({
       next: (data) => {
-        this.historyService.push(data);
+        const normalized = normalizeOldResult(data);
+        this.historyService.push(normalized);
         this.result.set(data);
         this.isLoading.set(false);
-        this.router.navigate(['/results'], { state: { result: data } });
+        this.router.navigate(['/results'], { state: { result: normalized } });
       },
       error: (err) => {
         const detail = err?.error?.detail ?? 'Impossible de joindre le serveur.';

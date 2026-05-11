@@ -28,7 +28,7 @@
         <div class="stat-icon-wrap accent-green">
           <mat-icon>trending_up</mat-icon>
         </div>
-        <p class="stat-value">{{ isDemo() ? (demoBestResult() ? pct(demoBestResult()!.stats.total_return_strat) : '—') : (bestReturn() ? pct(bestReturn()!.total_return_strat) : '—') }}</p>
+        <p class="stat-value">{{ isDemo() ? (demoBestResult() ? demoBestResult()!.metrics.total_return_pct.toFixed(2) + '%' : '—') : (bestReturn() ? pct(bestReturn()!.total_return_strat) : '—') }}</p>
         <p class="stat-label">Meilleur retour</p>
       </mat-card-content>
     </mat-card>
@@ -56,30 +56,30 @@
         <div class="last-stats">
           <div class="last-stat">
             <span class="lbl">Stratégie</span>
-            <span class="val" [class.positive]="last.stats.total_return_strat > 0"
-                              [class.negative]="last.stats.total_return_strat < 0">
-              {{ pct(last.stats.total_return_strat) }}
+            <span class="val" [class.positive]="last.metrics.total_return_pct > 0"
+                              [class.negative]="last.metrics.total_return_pct < 0">
+              {{ last.metrics.total_return_pct.toFixed(2) }}%
             </span>
           </div>
           <div class="last-stat">
             <span class="lbl">Marché</span>
-            <span class="val">{{ pct(last.stats.total_return_market) }}</span>
+            <span class="val">{{ last.metrics.market_return_pct !== null ? last.metrics.market_return_pct.toFixed(2) + '%' : '—' }}</span>
           </div>
           <div class="last-stat">
             <span class="lbl">Sharpe</span>
-            <span class="val">{{ last.stats.sharpe_ratio.toFixed(2) }}</span>
+            <span class="val">{{ last.metrics.sharpe_ratio.toFixed(2) }}</span>
           </div>
           <div class="last-stat">
             <span class="lbl">Drawdown max</span>
-            <span class="val negative">{{ pct(last.stats.max_drawdown) }}</span>
+            <span class="val negative">{{ last.metrics.max_drawdown_pct.toFixed(2) }}%</span>
           </div>
           <div class="last-stat">
             <span class="lbl">Trades</span>
-            <span class="val">{{ last.stats.n_trades }}</span>
+            <span class="val">{{ last.metrics.n_trades }}</span>
           </div>
           <div class="last-stat">
             <span class="lbl">Win rate</span>
-            <span class="val">{{ pct(last.stats.win_rate) }}</span>
+            <span class="val">{{ last.metrics.win_rate_pct.toFixed(2) }}%</span>
           </div>
         </div>
       </mat-card-content>

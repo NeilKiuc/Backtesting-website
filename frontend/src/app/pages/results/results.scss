@@ -82,8 +82,23 @@
   .legend-market { color: #888; }
 }
 
-/* Signals table */
+/* Trades & signals tables */
+.trades-card { margin-bottom: 24px; }
 .signals-card { margin-bottom: 24px; }
+
+.direction-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+
+  &.long  { background: #1b5e20; color: #a5d6a7; }
+  &.short { background: #b71c1c; color: #ef9a9a; }
+}
+
+.na { color: #555; }
 
 .table-wrapper {
   overflow-x: auto;
@@ -179,6 +194,7 @@
     &.chip-macd    { background: #0d47a1; color: #90caf9; }
     &.chip-rsi     { background: #4a148c; color: #ce93d8; }
     &.chip-ma      { background: #004d40; color: #80cbc4; }
+    &.chip-custom  { background: #1b5e20; color: #a5d6a7; }
     &.chip-default { background: #333;    color: #ccc; }
   }
 }

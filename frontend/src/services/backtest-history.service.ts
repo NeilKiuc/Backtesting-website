@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BacktestResult } from './data-service';
+import { NormalizedResult, normalizeOldResult } from './data-service';
 
 const STORAGE_KEY = 'demo_backtest_history';
 const MAX_ENTRIES = 5;
@@ -9,15 +9,19 @@ const MAX_ENTRIES = 5;
 })
 export class BacktestHistoryService {
 
-  push(result: BacktestResult): void {
+  push(result: NormalizedResult): void {
     const current = this.getAll();
     const updated = [result, ...current].slice(0, MAX_ENTRIES);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   }
 
-  getAll(): BacktestResult[] {
+  getAll(): NormalizedResult[] {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
+      return raw.map((entry: any) => {
+        if (entry.source) return entry;
+        return normalizeOldResult(entry);
+      });
     } catch {
       return [];
     }

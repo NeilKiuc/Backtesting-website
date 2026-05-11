@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.orm import Session
@@ -18,6 +18,8 @@ import data
 from strategies import STRATEGIES_REGISTRY
 from backtest import run_backtest
 from auth import router as auth_router
+from validator import validate_upload
+from metrics import compute_metrics, compute_pnl_for_trades, build_equity_curve
 
 load_dotenv()
 
@@ -194,3 +196,34 @@ def delete_backtest(backtest_id: int, db: Session = Depends(get_db)):
 @app.get("/api/strategies")
 def list_strategies():
     return {"strategies": list(STRATEGIES_REGISTRY.keys())}
+
+
+@app.post("/api/backtest/upload")
+async def upload_backtest(request: Request):
+    try:
+        data = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="JSON invalide.")
+
+    errors = validate_upload(data)
+    if errors:
+        raise HTTPException(status_code=422, detail=errors)
+
+    metadata = data["metadata"]
+    capital = metadata.get("capital_initial", 10000)
+    trades = data["trades"]
+
+    trades_with_pnl = compute_pnl_for_trades(trades)
+    metrics = compute_metrics(trades, capital)
+    equity_curve = build_equity_curve(trades, capital)
+
+    return {
+        "metadata": {
+            **metadata,
+            "created_at": datetime.utcnow().isoformat() + "Z",
+        },
+        "trades": trades_with_pnl,
+        "metrics": metrics,
+        "equity_curve": equity_curve,
+        "custom_series": data.get("custom_series", []),
+    }
