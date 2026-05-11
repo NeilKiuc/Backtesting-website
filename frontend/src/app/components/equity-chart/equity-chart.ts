@@ -63,8 +63,8 @@ export class EquityChartComponent implements AfterViewInit, OnChanges, OnDestroy
     this.chart = createChart(host, {
       autoSize: true,
       layout: {
-        background: { type: ColorType.Solid, color: '#0f1216' },
-        textColor: '#d1d4dc',
+        background: { type: ColorType.Solid, color: '#000000' },
+        textColor: '#8899aa',
       },
       grid: {
         vertLines: { color: 'rgba(255, 255, 255, 0.06)' },
@@ -84,14 +84,14 @@ export class EquityChartComponent implements AfterViewInit, OnChanges, OnDestroy
 
     // Série marché en gris (en dessous pour la lisibilité)
     this.seriesMarket = this.chart.addSeries(LineSeries, {
-      color: '#888888',
+      color: '#556677',
       lineWidth: 2,
       title: 'Marché',
     });
 
     // Série stratégie en bleu clair (au-dessus)
     this.seriesStrat = this.chart.addSeries(LineSeries, {
-      color: '#4fc3f7',
+      color: '#ffffff',
       lineWidth: 2,
       title: 'Stratégie',
     });

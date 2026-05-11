@@ -3,37 +3,40 @@
   <mat-sidenav #sidenav
     [mode]="isMobile() ? 'over' : 'side'"
     [opened]="!isMobile()"
+    [class.expanded]="isExpanded() || isMobile()"
+    (mouseenter)="expandSidebar()"
+    (mouseleave)="collapseSidebar()"
     class="sidebar">
-    <mat-toolbar color="primary">
+    <div class="sidebar-header">
       <span class="app-title" routerLink="">
-        <img src="assets/backtst.png" alt="Backtesting App Logo"> Backtst
+        <span class="logo-text">T3RM</span><span class="logo-cursor">█</span>
       </span>
-    </mat-toolbar>
+    </div>
 
     <mat-nav-list>
       <a mat-list-item routerLink="/dashboard" (click)="closeSidenavIfMobile()">
         <mat-icon matListItemIcon>dashboard</mat-icon>
-        <span matListItemTitle>Dashboard</span>
+        <span matListItemTitle class="nav-label">Dashboard</span>
       </a>
       <a mat-list-item routerLink="/data" (click)="closeSidenavIfMobile()">
         <mat-icon matListItemIcon>data_usage</mat-icon>
-        <span matListItemTitle>Data</span>
+        <span matListItemTitle class="nav-label">Data</span>
       </a>
       <a mat-list-item routerLink="/backtests" (click)="closeSidenavIfMobile()">
         <mat-icon matListItemIcon>analytics</mat-icon>
-        <span matListItemTitle>Backtests</span>
+        <span matListItemTitle class="nav-label">Backtests</span>
       </a>
       <a mat-list-item routerLink="/advanced" (click)="closeSidenavIfMobile()">
         <mat-icon matListItemIcon>code</mat-icon>
-        <span matListItemTitle>Mode Avancé</span>
+        <span matListItemTitle class="nav-label">Mode Avancé</span>
       </a>
       <a mat-list-item routerLink="/results" (click)="closeSidenavIfMobile()">
         <mat-icon matListItemIcon>bar_chart</mat-icon>
-        <span matListItemTitle>Results</span>
+        <span matListItemTitle class="nav-label">Results</span>
       </a>
       <a mat-list-item routerLink="/settings" (click)="closeSidenavIfMobile()">
         <mat-icon matListItemIcon>settings</mat-icon>
-        <span matListItemTitle>Settings</span>
+        <span matListItemTitle class="nav-label">Settings</span>
       </a>
     </mat-nav-list>
   </mat-sidenav>

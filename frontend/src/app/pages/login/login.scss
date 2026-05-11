@@ -4,19 +4,15 @@
   width: 100%;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, var(--mat-sys-surface) 0%, var(--mat-sys-surface-variant) 100%);
+  background: #000000;
 }
 
-.landing-card {
+.landing-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 40px;
-  padding: 56px 48px;
-  border-radius: 24px;
-  background: var(--mat-sys-surface);
-  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
+  gap: 48px;
+  max-width: 320px;
   width: 100%;
 }
 
@@ -24,73 +20,64 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   text-align: center;
 
-  .logo {
-    width: 64px;
-    height: 64px;
-    object-fit: contain;
-  }
-
-  h1 {
-    margin: 0;
-    font-size: 2rem;
+  .brand-logo {
+    font-family: var(--t3rm-font-mono);
+    font-size: 4rem;
     font-weight: 700;
-    color: var(--mat-sys-on-surface);
+    color: #ffffff;
+    letter-spacing: 0.12em;
+
+    .logo-cursor {
+      animation: blink 1s step-end infinite;
+    }
   }
 
   .subtitle {
     margin: 0;
-    font-size: 0.9rem;
-    color: var(--mat-sys-on-surface-variant);
+    font-family: var(--t3rm-font-mono);
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: #555555;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
   }
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
 }
 
 .actions {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
 }
 
 .btn-google {
   width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: center;
   padding: 12px 24px;
-  font-size: 1rem;
+  font-family: var(--t3rm-font-ui);
+  font-size: 0.9rem;
+  border-color: #333333;
+  color: #ffffff;
 }
 
 .btn-demo {
   width: 100%;
-  padding: 10px 24px;
-  font-size: 0.95rem;
-}
-
-.divider {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  gap: 12px;
-  color: var(--mat-sys-on-surface-variant);
+  padding: 8px 24px;
+  font-family: var(--t3rm-font-ui);
   font-size: 0.85rem;
-
-  &::before,
-  &::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--mat-sys-outline-variant);
-  }
+  color: #555555;
 }
 
 .disclaimer {
   margin: 0;
-  font-size: 0.75rem;
-  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.7rem;
+  color: #333333;
   text-align: center;
 }

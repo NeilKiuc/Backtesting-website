@@ -6,7 +6,7 @@
 }
 
 h1 { margin: 0 0 4px; font-size: 1.6rem; }
-h2 { margin: 24px 0 12px; font-size: 1.1rem; color: #ccc; }
+h2 { margin: 24px 0 12px; font-size: 1.1rem; color: var(--t3rm-text-primary); }
 
 .form-row {
   display: flex;
@@ -27,7 +27,7 @@ h2 { margin: 24px 0 12px; font-size: 1.1rem; color: #ccc; }
   .indicator-name {
     font-weight: 600;
     font-size: 1rem;
-    color: #4fc3f7;
+    color: var(--t3rm-accent);
   }
 
   .indicator-category {
@@ -35,8 +35,8 @@ h2 { margin: 24px 0 12px; font-size: 1.1rem; color: #ccc; }
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: #888;
-    background: #2a2a2a;
+    color: var(--t3rm-text-secondary);
+    background: var(--t3rm-bg-elevated);
     padding: 2px 8px;
     border-radius: 4px;
   }
@@ -44,7 +44,7 @@ h2 { margin: 24px 0 12px; font-size: 1.1rem; color: #ccc; }
   .indicator-description {
     margin: 6px 0 12px;
     font-size: 0.85rem;
-    color: #aaa;
+    color: var(--t3rm-text-secondary);
     line-height: 1.4;
   }
 
@@ -68,7 +68,7 @@ h2 { margin: 24px 0 12px; font-size: 1.1rem; color: #ccc; }
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #888;
+  color: var(--t3rm-text-secondary);
   font-size: 0.85rem;
   margin: 8px 0 16px;
 
@@ -88,13 +88,13 @@ button[mat-raised-button] {
   align-items: center;
   gap: 12px;
   margin: 16px 0;
-  color: #aaa;
+  color: var(--t3rm-text-secondary);
 }
 
 .error {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #ef5350;
+  color: var(--t3rm-negative);
   margin: 16px 0;
 }

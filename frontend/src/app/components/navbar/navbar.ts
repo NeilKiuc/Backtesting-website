@@ -30,12 +30,21 @@ export class Navbar implements OnInit {
   user = signal<UserInfo | null>(null);
   isDemo = signal(false);
   isMobile = signal(false);
+  isExpanded = signal(false);
 
   ngOnInit() {
     this.auth.demo$.subscribe((d) => this.isDemo.set(d));
     this.auth.user$.subscribe((u) => this.user.set(u));
     this.breakpoints.observe([Breakpoints.Handset, Breakpoints.TabletPortrait])
       .subscribe(result => this.isMobile.set(result.matches));
+  }
+
+  expandSidebar() {
+    if (!this.isMobile()) this.isExpanded.set(true);
+  }
+
+  collapseSidebar() {
+    if (!this.isMobile()) this.isExpanded.set(false);
   }
 
   closeSidenavIfMobile() {

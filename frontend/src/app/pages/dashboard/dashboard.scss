@@ -34,9 +34,9 @@
   align-items: center;
   justify-content: center;
 
-  &.accent-blue   { background: #e3f2fd; color: #1976d2; }
-  &.accent-green  { background: #e8f5e9; color: #388e3c; }
-  &.accent-purple { background: #f3e5f5; color: #7b1fa2; }
+  &.accent-blue   { background: rgba(255, 255, 255, 0.08); color: var(--t3rm-accent); }
+  &.accent-green  { background: rgba(0, 230, 118, 0.12); color: var(--t3rm-positive); }
+  &.accent-purple { background: rgba(206, 147, 216, 0.12); color: #ce93d8; }
 }
 
 .stat-value {
@@ -105,8 +105,8 @@
   font-size: 0.95rem;
 }
 
-.positive { color: #4caf50; }
-.negative { color: #f44336; }
+.positive { color: var(--t3rm-positive); }
+.negative { color: var(--t3rm-negative); }
 
 /* Actions */
 .actions-row {
@@ -131,7 +131,7 @@
     p { margin: 0; font-size: 0.85rem; font-weight: 500; }
   }
 
-  &:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+  &:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
 }
 
 .fab-backtest {

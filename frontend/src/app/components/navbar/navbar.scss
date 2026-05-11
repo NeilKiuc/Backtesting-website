@@ -1,22 +1,37 @@
 :host {
-    display: block;
-    width: 100%;
-    height: 100vh;
+  display: block;
+  width: 100%;
+  height: 100vh;
 }
 
 .layout-container {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 .sidebar {
-	width: 200px;
-	border-right: 1px solid var(--mat-sys-outline-variant);
-	font-family: 'Poppins', sans-serif;
+  width: 60px;
+  border-right: 1px solid var(--mat-sys-outline-variant);
+  font-family: var(--t3rm-font-ui);
+  transition: width 0.2s ease;
+  overflow-x: hidden;
+
+  &.expanded {
+    width: 220px;
+  }
 }
 
-.sidebar mat-toolbar {
-	margin-bottom: 0.10rem;
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  padding: 0 8px;
+}
+
+.sidebar.expanded .sidebar-header {
+  justify-content: flex-start;
+  padding: 0 16px;
 }
 
 .topbar {
@@ -72,6 +87,16 @@
   padding: 20px;
 }
 
+.nav-label {
+  opacity: 0;
+  white-space: nowrap;
+  transition: opacity 0.15s ease;
+}
+
+.sidebar.expanded .nav-label {
+  opacity: 1;
+}
+
 @media (max-width: 768px) {
   .page-content {
     padding: 12px;
@@ -81,30 +106,38 @@
     display: none;
   }
 }
-.app-title {
-    cursor: pointer;
-	display: inline-flex;
-	align-items: center;
-	gap: 0.45rem;
-	font-family: 'Poppins', sans-serif;
-	font-size: 0.95rem;
-	font-weight: 700;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
 
-	img {
-		height: 32px;
-		width: auto;
-		max-width: 140px;
-		object-fit: contain;
-		display: block;
-        
-	}
+.app-title {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  font-family: var(--t3rm-font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--t3rm-accent);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.sidebar.expanded .app-title {
+  font-size: 1.1rem;
+}
+
+.logo-cursor {
+  color: var(--t3rm-accent);
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
 }
 
 .sidebar .mat-mdc-list-item .mdc-list-item__primary-text {
-	font-family: 'Poppins', sans-serif;
-	font-size: 0.92rem;
-	font-weight: 500;
-	letter-spacing: 0.02em;
+  font-family: var(--t3rm-font-ui);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }

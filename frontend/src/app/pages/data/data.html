@@ -24,9 +24,9 @@
   @if (isLoading()) {
     <p><mat-icon>hourglass</mat-icon> Récupération des données...</p>
   } @else if (errorMessage()) {
-    <p style="color: red;"><mat-icon>close</mat-icon> {{ errorMessage() }}</p>
+    <p class="error-text"><mat-icon>close</mat-icon> {{ errorMessage() }}</p>
   } @else if (marketData().length > 0) {
-    <div style="background: #f4f4f4; padding: 15px; border-radius: 8px; width: 100%; box-sizing: border-box;">
+    <div class="chart-container">
       <app-market-chart
         [data]="marketData()"
         [period]="period()"
