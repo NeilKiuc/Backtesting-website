@@ -1,132 +1,153 @@
-<h1>Backtests</h1>
-
-<!-- ── Formulaire ──────────────────────────────────────────────────────── -->
-<div class="form-row">
-  <mat-form-field>
-    <mat-label>Indice</mat-label>
-    <mat-select [value]="ticker()" (selectionChange)="ticker.set($event.value)">
-      <mat-option value="sp500">S&amp;P 500</mat-option>
-      <mat-option value="nasdaq">Nasdaq</mat-option>
-      <mat-option value="nq">Nasdaq Futures</mat-option>
-    </mat-select>
-  </mat-form-field>
-
-  <mat-form-field>
-    <mat-label>Période</mat-label>
-    <mat-select [value]="period()" (selectionChange)="period.set($event.value)">
-      <mat-option value="1M">1 Mois</mat-option>
-      <mat-option value="1Y">1 An</mat-option>
-      <mat-option value="5Y">5 Ans</mat-option>
-    </mat-select>
-  </mat-form-field>
-
-  <mat-form-field>
-    <mat-label>Stratégie</mat-label>
-    <mat-select [value]="strategy()" (selectionChange)="onStrategyChange($event.value)">
-      <mat-option value="macd">MACD</mat-option>
-      <mat-option value="rsi">RSI</mat-option>
-      <mat-option value="ma_crossover">MA Crossover</mat-option>
-    </mat-select>
-  </mat-form-field>
-</div>
-
-<!-- ── Paramètres dynamiques ──────────────────────────────────────────── -->
-<div class="form-row params-row">
-  @for (key of paramKeys(); track key) {
-    <mat-form-field class="param-field">
-      <mat-label>{{ key }}</mat-label>
-      <input matInput type="number"
-             [value]="params()[key]"
-             (change)="updateParam(key, $any($event.target).value)" />
-    </mat-form-field>
-  }
-</div>
-
-<button mat-raised-button color="primary" (click)="runBacktest()" [disabled]="isLoading()">
-  <mat-icon>play_arrow</mat-icon> Lancer le backtest
-</button>
-
-<!-- ── Loading / Error ────────────────────────────────────────────────── -->
-@if (isLoading()) {
-  <div class="center-status">
-    <mat-spinner diameter="40"></mat-spinner>
-    <span>Calcul en cours...</span>
+<div class="page">
+  <div class="crumb">
+    <span>T3RM</span><span class="sep">/</span><span class="now">BACKTESTS</span>
   </div>
-}
+  <div class="flex justify-between items-center mb-14" style="margin-top: 4px">
+    <h1>Constructeur de stratégie</h1>
+    <div class="flex gap-8">
+      <button class="btn primary" (click)="runBacktest()" [disabled]="isLoading() || selectedIndicators().length === 0">
+        @if (isLoading()) {
+          ⏵ EXÉCUTION…
+        } @else {
+          ▶ LANCER <span class="kbd">↵</span>
+        }
+      </button>
+    </div>
+  </div>
 
-@if (errorMessage()) {
-  <p class="error"><mat-icon>error</mat-icon> {{ errorMessage() }}</p>
-}
+  <div class="split-side">
+    <div class="flex-col gap-14">
 
-<!-- ── Résultats ──────────────────────────────────────────────────────── -->
-@if (result(); as res) {
-  <div class="results">
-
-    <!-- Stats cards -->
-    <div class="stats-grid">
-      <mat-card>
-        <mat-card-content>
-          <div class="stat-label">Rendement stratégie</div>
-          <div class="stat-value" [class.positive]="res.stats.total_return_strat > 0"
-                                  [class.negative]="res.stats.total_return_strat < 0">
-            {{ pct(res.stats.total_return_strat) }}
+      <!-- Universe config -->
+      <div class="panel">
+        <div class="panel-header"><div class="title">UNIVERS</div></div>
+        <div class="panel-body">
+          <div class="split-2">
+            <div class="field">
+              <label>Indice</label>
+              <div class="seg" style="width: 100%">
+                <button [class.on]="ticker() === 'sp500'" (click)="ticker.set('sp500')" style="flex: 1">S&amp;P 500</button>
+                <button [class.on]="ticker() === 'nasdaq'" (click)="ticker.set('nasdaq')" style="flex: 1">Nasdaq</button>
+                <button [class.on]="ticker() === 'nq'" (click)="ticker.set('nq')" style="flex: 1">NQ Futures</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>Période</label>
+              <div class="seg" style="width: 100%">
+                <button [class.on]="period() === '1M'" (click)="period.set('1M')" style="flex: 1">1M</button>
+                <button [class.on]="period() === '1Y'" (click)="period.set('1Y')" style="flex: 1">1Y</button>
+                <button [class.on]="period() === '5Y'" (click)="period.set('5Y')" style="flex: 1">5Y</button>
+              </div>
+            </div>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
 
-      <mat-card>
-        <mat-card-content>
-          <div class="stat-label">Rendement marché</div>
-          <div class="stat-value" [class.positive]="res.stats.total_return_market > 0"
-                                  [class.negative]="res.stats.total_return_market < 0">
-            {{ pct(res.stats.total_return_market) }}
+      <!-- Indicators -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="title">INDICATEURS · {{ String(selectedIndicators().length).padStart(2, '0') }}</div>
+          <div class="actions">
+            @if (selectedIndicators().length > 1) {
+              <span class="muted">combinés en logique AND</span>
+            }
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+        <div class="panel-body flex-col gap-12">
+          @for (indicator of selectedIndicators(); track $index; let i = $index) {
+            <div style="background: var(--bg-2); border: 1px solid var(--border); padding: 14px">
+              <div class="flex justify-between items-center mb-8">
+                <div class="flex items-center gap-12">
+                  <span class="chip" [class]="indicator.name">{{ indicator.name.toUpperCase() }}</span>
+                  @if (getStrategyInfo(indicator.name); as info) {
+                    <div>
+                      <div style="font-size: 13px; color: var(--fg-0)">{{ info.description }}</div>
+                      <div class="muted" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em">{{ info.category }}</div>
+                    </div>
+                  }
+                </div>
+                @if (selectedIndicators().length > 1) {
+                  <button class="btn ghost" (click)="removeIndicator(i)">✕</button>
+                }
+              </div>
+              <div class="grid row-3" style="background: var(--border)">
+                @for (key of getParamKeys(i); track key) {
+                  <div class="field" style="background: var(--bg-2); padding: 8px 12px">
+                    <label>{{ key }}</label>
+                    <input class="t3rm-input tight"
+                           type="number"
+                           [value]="indicator.params[key]"
+                           (change)="updateIndicatorParam(i, key, $any($event.target).value)" />
+                  </div>
+                }
+              </div>
+            </div>
+          }
 
-      <mat-card>
-        <mat-card-content>
-          <div class="stat-label">Ratio de Sharpe</div>
-          <div class="stat-value">{{ res.stats.sharpe_ratio }}</div>
-        </mat-card-content>
-      </mat-card>
+          @if (availableIndicators().length > 0) {
+            <div class="flex gap-8 items-center" style="border-top: 1px dashed var(--border); padding-top: 12px">
+              <span class="muted" style="font-size: 11px">+ AJOUTER :</span>
+              @for (strat of availableIndicators(); track strat.name) {
+                <button class="btn" (click)="addIndicator(strat.name)">
+                  + {{ strat.name.toUpperCase() }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
 
-      <mat-card>
-        <mat-card-content>
-          <div class="stat-label">Drawdown max</div>
-          <div class="stat-value negative">{{ pct(res.stats.max_drawdown) }}</div>
-        </mat-card-content>
-      </mat-card>
+      <!-- Loading/Error -->
+      @if (isLoading()) {
+        <div class="panel">
+          <div class="panel-header">
+            <div class="title">CONSOLE D'EXÉCUTION</div>
+            <div class="actions"><span class="dot-st warn"></span> RUN…</div>
+          </div>
+          <div class="panel-body" style="background: var(--bg-0); text-align: center; padding: 30px">
+            <span class="muted" style="font-size: 11px; letter-spacing: 0.14em">CALCUL EN COURS…</span>
+          </div>
+        </div>
+      }
 
-      <mat-card>
-        <mat-card-content>
-          <div class="stat-label">Trades</div>
-          <div class="stat-value">{{ res.stats.n_trades }}</div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card>
-        <mat-card-content>
-          <div class="stat-label">Win rate</div>
-          <div class="stat-value">{{ pct(res.stats.win_rate) }}</div>
-        </mat-card-content>
-      </mat-card>
+      @if (errorMessage()) {
+        <div class="panel">
+          <div class="panel-header">
+            <div class="title">ERREUR</div>
+            <div class="actions"><span class="dot-st err"></span></div>
+          </div>
+          <div class="panel-body">
+            <span class="neg">{{ errorMessage() }}</span>
+          </div>
+        </div>
+      }
     </div>
 
-    <!-- Courbe d'équité -->
-    <mat-card class="chart-card">
-      <mat-card-header>
-        <mat-card-title>Courbe d'équité</mat-card-title>
-        <mat-card-subtitle>
-          <span class="legend-strat">— Stratégie</span>
-          &nbsp;&nbsp;
-          <span class="legend-market">— Marché (buy &amp; hold)</span>
-        </mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <div [innerHTML]="equitySvg()"></div>
-      </mat-card-content>
-    </mat-card>
+    <!-- Preview sidebar -->
+    <div class="flex-col gap-14">
+      <div class="panel">
+        <div class="panel-header"><div class="title">PRÉVISUALISATION</div></div>
+        <div class="panel-body flex-col gap-8" style="font-size: 11.5px">
+          <div class="kv-row"><span class="kv-key">UNIVERS</span><span>{{ tickerLabel() }}</span></div>
+          <div class="kv-row"><span class="kv-key">PÉRIODE</span><span>{{ period() }}</span></div>
+          <div class="kv-row"><span class="kv-key">INDICATEURS</span><span>{{ selectedIndicators().length }}</span></div>
+          <div class="kv-row"><span class="kv-key">LOGIQUE</span><span>{{ selectedIndicators().length > 1 ? 'AND' : '─' }}</span></div>
+        </div>
+      </div>
 
+      <div class="panel">
+        <div class="panel-header"><div class="title">RACCOURCIS</div></div>
+        <div class="panel-body flex-col gap-6" style="font-size: 11px">
+          <div class="kv-row">
+            <span class="kv-key">LANCER</span>
+            <span class="kbd" style="padding: 1px 5px; border: 1px solid var(--border-2)">↵</span>
+          </div>
+          <div class="kv-row">
+            <span class="kv-key">COMMANDES</span>
+            <span class="kbd" style="padding: 1px 5px; border: 1px solid var(--border-2)">⌘K</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-}
+</div>

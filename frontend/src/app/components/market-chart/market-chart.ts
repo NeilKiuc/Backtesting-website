@@ -79,8 +79,8 @@ export class MarketChartComponent implements AfterViewInit, OnChanges, OnDestroy
     this.chart = createChart(host, {
       autoSize: true,
       layout: {
-        background: { type: ColorType.Solid, color: '#0f1216' },
-        textColor: '#d1d4dc',
+        background: { type: ColorType.Solid, color: '#000000' },
+        textColor: '#8899aa',
       },
       grid: {
         vertLines: { color: 'rgba(255, 255, 255, 0.06)' },
@@ -137,15 +137,15 @@ export class MarketChartComponent implements AfterViewInit, OnChanges, OnDestroy
       this.series =
         mode === 'line'
           ? this.chart.addSeries(LineSeries, {
-              color: '#4da3ff',
+              color: '#ffffff',
               lineWidth: 2,
             })
           : this.chart.addSeries(CandlestickSeries, {
-              upColor: '#4caf50',
-              downColor: '#f44336',
+              upColor: '#00e676',
+              downColor: '#ff5252',
               borderVisible: false,
-              wickUpColor: '#4caf50',
-              wickDownColor: '#f44336',
+              wickUpColor: '#00e676',
+              wickDownColor: '#ff5252',
             });
 
       this.lastChartMode = mode;

@@ -1,85 +1,134 @@
-<mat-sidenav-container class="layout-container">
+@if (isAuthRoute) {
+  <!-- Minimal layout for login/callback -->
+  <router-outlet></router-outlet>
+} @else {
+  <!-- Terminal layout -->
+  <div class="t3rm-shell">
 
-  <mat-sidenav #sidenav
-    [mode]="isMobile() ? 'over' : 'side'"
-    [opened]="!isMobile()"
-    class="sidebar">
-    <mat-toolbar color="primary">
-      <span class="app-title" routerLink="">
-        <img src="assets/backtst.png" alt="Backtesting App Logo"> Backtst
-      </span>
-    </mat-toolbar>
-
-    <mat-nav-list>
-      <a mat-list-item routerLink="/dashboard" (click)="closeSidenavIfMobile()">
-        <mat-icon matListItemIcon>dashboard</mat-icon>
-        <span matListItemTitle>Dashboard</span>
+    <!-- ── Tickertape ── -->
+    <div class="tickertape">
+      <a class="brand" routerLink="/dashboard">
+        T3RM<span class="cursor"></span>
       </a>
-      <a mat-list-item routerLink="/data" (click)="closeSidenavIfMobile()">
-        <mat-icon matListItemIcon>data_usage</mat-icon>
-        <span matListItemTitle>Data</span>
-      </a>
-      <a mat-list-item routerLink="/backtests" (click)="closeSidenavIfMobile()">
-        <mat-icon matListItemIcon>analytics</mat-icon>
-        <span matListItemTitle>Backtests</span>
-      </a>
-      <a mat-list-item routerLink="/advanced" (click)="closeSidenavIfMobile()">
-        <mat-icon matListItemIcon>code</mat-icon>
-        <span matListItemTitle>Mode Avancé</span>
-      </a>
-      <a mat-list-item routerLink="/results" (click)="closeSidenavIfMobile()">
-        <mat-icon matListItemIcon>bar_chart</mat-icon>
-        <span matListItemTitle>Results</span>
-      </a>
-      <a mat-list-item routerLink="/settings" (click)="closeSidenavIfMobile()">
-        <mat-icon matListItemIcon>settings</mat-icon>
-        <span matListItemTitle>Settings</span>
-      </a>
-    </mat-nav-list>
-  </mat-sidenav>
-
-  <mat-sidenav-content>
-
-    <mat-toolbar class="topbar">
-      @if (isMobile()) {
-        <button mat-icon-button (click)="sidenav.toggle()" class="hamburger">
-          <mat-icon>menu</mat-icon>
-        </button>
-      }
-      <span class="spacer"></span>
-
-      @if (isDemo()) {
-        <span class="demo-badge">Mode démo</span>
-        <button mat-stroked-button (click)="logout()">Se connecter</button>
-      } @else if (user()) {
-        <button mat-button [matMenuTriggerFor]="userMenu" class="user-btn">
-          <mat-icon>account_circle</mat-icon>
-          <span class="username-label">{{ user()!.username }}</span>
-          <mat-icon>arrow_drop_down</mat-icon>
-        </button>
-
-        <mat-menu #userMenu="matMenu">
-          <div class="menu-header">
-            <span class="menu-name">{{ user()!.username }}</span>
-            <span class="menu-email">{{ user()!.email }}</span>
-          </div>
-          <mat-divider />
-          <button mat-menu-item (click)="goSettings()">
-            <mat-icon>settings</mat-icon>
-            Paramètres
-          </button>
-          <button mat-menu-item (click)="logout()" class="logout-item">
-            <mat-icon>logout</mat-icon>
-            Se déconnecter
-          </button>
-        </mat-menu>
-      }
-    </mat-toolbar>
-
-    <div class="page-content">
-      <router-outlet></router-outlet>
+      <div class="scroll">
+        <div class="scroll-inner">
+          @for (t of tickerData; track $index) {
+            <span class="tick">
+              <span class="sym">{{ t.s }}</span>
+              <span class="px">{{ t.p }}</span>
+              <span class="ch" [class.pos]="t.c >= 0" [class.neg]="t.c < 0">
+                {{ t.c >= 0 ? '+' : '' }}{{ t.c }}%
+              </span>
+            </span>
+          }
+          @for (t of tickerData; track $index) {
+            <span class="tick dup">
+              <span class="sym">{{ t.s }}</span>
+              <span class="px">{{ t.p }}</span>
+              <span class="ch" [class.pos]="t.c >= 0" [class.neg]="t.c < 0">
+                {{ t.c >= 0 ? '+' : '' }}{{ t.c }}%
+              </span>
+            </span>
+          }
+        </div>
+      </div>
+      <div class="right">
+        <span class="pill">{{ isDemo() ? 'DEMO' : 'LIVE' }}</span>
+        <span class="user-tag">@{{ user()?.username || 'trader' }}</span>
+      </div>
     </div>
 
-  </mat-sidenav-content>
+    <!-- ── Sidebar ── -->
+    <nav class="sidebar">
+      @for (item of navItems; track item.route) {
+        <a class="nav-item"
+           [routerLink]="item.route"
+           routerLinkActive="active"
+           [title]="item.label">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" [attr.data-icon]="item.icon">
+            @switch (item.icon) {
+              @case ('grid') {
+                <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
+              }
+              @case ('candle') {
+                <line x1="6" y1="3" x2="6" y2="21" /><rect x="4" y="7" width="4" height="9" />
+                <line x1="14" y1="5" x2="14" y2="20" /><rect x="12" y="9" width="4" height="7" />
+                <line x1="20" y1="6" x2="20" y2="18" />
+              }
+              @case ('bolt') {
+                <path d="M13 2 4 14h7l-1 8 9-12h-7z" />
+              }
+              @case ('chart') {
+                <path d="M3 20h18M5 16l4-6 4 3 6-9" />
+              }
+              @case ('code') {
+                <path d="M16 18l6-6-6-6M8 6l-6 6 6 6M14 4l-4 16" />
+              }
+            }
+          </svg>
+          <span class="nav-lbl">{{ item.label }}</span>
+        </a>
+      }
 
-</mat-sidenav-container>
+      <div class="spacer"></div>
+
+      <a class="nav-item"
+         routerLink="/settings"
+         routerLinkActive="active"
+         title="CFG">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" />
+        </svg>
+        <span class="nav-lbl">CFG</span>
+      </a>
+    </nav>
+
+    <!-- ── Main content ── -->
+    <main class="main-area">
+      <router-outlet></router-outlet>
+    </main>
+
+    <!-- ── Status bar ── -->
+    <div class="statusbar">
+      <span class="sb-sect"><span class="dot blink"></span> CONN</span>
+      <span class="sb-sect">/ROUTE/{{ currentRoute }}</span>
+      <span class="sb-sect dim">LAT 42ms</span>
+      <span class="sb-spacer"></span>
+      <span class="sb-sect cmd-trigger" (click)="openPalette()">
+        <span class="sb-key">⌘K</span> COMMAND
+      </span>
+      <span class="sb-sect dim">v0.4.2-dev</span>
+    </div>
+
+  </div>
+
+  <!-- ── Command Palette ── -->
+  @if (paletteOpen()) {
+    <div class="palette-backdrop" (click)="closePalette()">
+      <div class="palette" (click)="$event.stopPropagation()">
+        <input class="p-input"
+               placeholder="› Tapez une commande..."
+               [value]="paletteQuery()"
+               (input)="paletteQuery.set($any($event.target).value)"
+               (keydown)="onPaletteKeydown($event)"
+               #paletteInput />
+        <div class="p-list">
+          @for (item of filteredPalette; track item.label; let i = $index) {
+            <div class="p-item"
+                 [class.active]="i === paletteIndex()"
+                 (mouseenter)="paletteIndex.set(i)"
+                 (click)="selectPaletteItem(item)">
+              <span>{{ item.label }}</span>
+              <span class="hint">{{ item.hint }}</span>
+            </div>
+          }
+          @if (filteredPalette.length === 0) {
+            <div class="p-item muted">Aucun résultat</div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+}

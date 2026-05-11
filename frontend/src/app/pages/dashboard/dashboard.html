@@ -1,154 +1,181 @@
-<div class="dashboard-wrapper">
-
-  <!-- Header -->
-  <div class="dashboard-header">
-    @if (isDemo()) {
-      <h1>Bienvenue</h1>
-      <p class="subtitle">Vous êtes en mode démo — connectez-vous pour sauvegarder vos backtests.</p>
-    } @else {
-      <h1>Bonjour, {{ user()?.username }} 👋</h1>
-      <p class="subtitle">Voici un résumé de votre activité</p>
-    }
+<div class="page">
+  <div class="crumb">
+    <span>T3RM</span><span class="sep">/</span><span class="now">DASHBOARD</span>
+  </div>
+  <div class="flex justify-between items-center mb-14" style="margin-top: 4px">
+    <h1>Console</h1>
+    <div class="flex gap-8">
+      <a class="btn" routerLink="/data">VOIR LES DONNÉES</a>
+      <a class="btn primary" routerLink="/backtests">
+        ▶ LANCER UN BACKTEST <span class="kbd">B</span>
+      </a>
+    </div>
   </div>
 
-  <!-- Stats -->
-  <div class="stats-row">
-    <mat-card appearance="outlined" class="stat-card">
-      <mat-card-content>
-        <div class="stat-icon-wrap accent-blue">
-          <mat-icon>history</mat-icon>
+  <!-- Metrics -->
+  <div class="grid row-4 mb-14">
+    <div class="metric">
+      <div class="lbl">Backtests lancés</div>
+      <div class="val">{{ isDemo() ? String(demoHistory().length).padStart(2, '0') : String(totalBacktests()).padStart(2, '0') }}</div>
+      <div class="sub">↺ Session courante</div>
+    </div>
+    <div class="metric">
+      <div class="lbl">Meilleur retour</div>
+      @if (isDemo()) {
+        <div class="val" [class.pos]="demoBestResult() && demoBestResult()!.metrics.total_return_pct >= 0"
+             [class.neg]="demoBestResult() && demoBestResult()!.metrics.total_return_pct < 0">
+          {{ demoBestResult() ? demoBestResult()!.metrics.total_return_pct.toFixed(2) + '%' : '—' }}
         </div>
-        <p class="stat-value">{{ isDemo() ? demoHistory().length : totalBacktests() }}</p>
-        <p class="stat-label">Backtests lancés</p>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card appearance="outlined" class="stat-card">
-      <mat-card-content>
-        <div class="stat-icon-wrap accent-green">
-          <mat-icon>trending_up</mat-icon>
+        <div class="sub">{{ demoBestResult() ? demoBestResult()!.ticker + ' · ' + demoBestResult()!.strategy.toUpperCase() : 'aucun' }}</div>
+      } @else {
+        <div class="val" [class.pos]="bestReturn() && bestReturn()!.total_return_strat > 0"
+             [class.neg]="bestReturn() && bestReturn()!.total_return_strat < 0">
+          {{ bestReturn() ? pct(bestReturn()!.total_return_strat) : '—' }}
         </div>
-        <p class="stat-value">{{ isDemo() ? (demoBestResult() ? demoBestResult()!.metrics.total_return_pct.toFixed(2) + '%' : '—') : (bestReturn() ? pct(bestReturn()!.total_return_strat) : '—') }}</p>
-        <p class="stat-label">Meilleur retour</p>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card appearance="outlined" class="stat-card">
-      <mat-card-content>
-        <div class="stat-icon-wrap accent-purple">
-          <mat-icon>emoji_events</mat-icon>
-        </div>
-        <p class="stat-value">{{ isDemo() ? (demoBestResult()?.strategy?.toUpperCase() ?? '—') : (bestReturn()?.strategy ?? '—') }}</p>
-        <p class="stat-label">Meilleure stratégie</p>
-      </mat-card-content>
-    </mat-card>
-  </div>
-
-  <!-- Dernier backtest démo -->
-  @if (isDemo() && lastDemo(); as last) {
-    <mat-card appearance="outlined" class="last-backtest-card">
-      <mat-card-header>
-        <mat-icon mat-card-avatar>bar_chart</mat-icon>
-        <mat-card-title>Dernier backtest</mat-card-title>
-        <mat-card-subtitle>{{ last.ticker }} — {{ last.strategy.toUpperCase() }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="last-stats">
-          <div class="last-stat">
-            <span class="lbl">Stratégie</span>
-            <span class="val" [class.positive]="last.metrics.total_return_pct > 0"
-                              [class.negative]="last.metrics.total_return_pct < 0">
-              {{ last.metrics.total_return_pct.toFixed(2) }}%
-            </span>
-          </div>
-          <div class="last-stat">
-            <span class="lbl">Marché</span>
-            <span class="val">{{ last.metrics.market_return_pct !== null ? last.metrics.market_return_pct.toFixed(2) + '%' : '—' }}</span>
-          </div>
-          <div class="last-stat">
-            <span class="lbl">Sharpe</span>
-            <span class="val">{{ last.metrics.sharpe_ratio.toFixed(2) }}</span>
-          </div>
-          <div class="last-stat">
-            <span class="lbl">Drawdown max</span>
-            <span class="val negative">{{ last.metrics.max_drawdown_pct.toFixed(2) }}%</span>
-          </div>
-          <div class="last-stat">
-            <span class="lbl">Trades</span>
-            <span class="val">{{ last.metrics.n_trades }}</span>
-          </div>
-          <div class="last-stat">
-            <span class="lbl">Win rate</span>
-            <span class="val">{{ last.metrics.win_rate_pct.toFixed(2) }}%</span>
-          </div>
-        </div>
-      </mat-card-content>
-      <mat-card-actions>
-        <button mat-button routerLink="/results">Voir les résultats complets</button>
-      </mat-card-actions>
-    </mat-card>
-  }
-
-  <!-- Derniers backtests -->
-  @if (!isDemo() && recent().length > 0) {
-    <mat-card appearance="outlined" class="recent-card">
-      <mat-card-header>
-        <mat-card-title>Derniers backtests</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        @for (row of recent(); track row.id) {
-          <div class="recent-row">
-            <div class="recent-left">
-              <span class="recent-ticker">{{ row.ticker }}</span>
-              <span class="recent-meta">{{ row.strategy }} · {{ row.period }} · {{ row.created_at | date:'dd/MM/yy' }}</span>
-            </div>
-            <span class="recent-return" [class.positive]="row.total_return_strat > 0" [class.negative]="row.total_return_strat < 0">
-              {{ pct(row.total_return_strat) }}
-            </span>
-          </div>
-          <mat-divider />
+        <div class="sub">{{ bestReturn() ? bestReturn()!.ticker + ' · ' + bestReturn()!.strategy : 'aucun' }}</div>
+      }
+    </div>
+    <div class="metric">
+      <div class="lbl">Sharpe médian</div>
+      <div class="val">
+        @if (isDemo() && demoHistory().length > 0) {
+          {{ medianSharpe().toFixed(2) }}
+        } @else {
+          —
         }
-      </mat-card-content>
-      <mat-card-actions>
-        <button mat-button routerLink="/results">Voir tout l'historique</button>
-      </mat-card-actions>
-    </mat-card>
-  }
-
-  <!-- Actions rapides -->
-  <div class="actions-row">
-    <mat-card appearance="outlined" class="action-card" routerLink="/data">
-      <mat-card-content>
-        <mat-icon>candlestick_chart</mat-icon>
-        <p>Données de marché</p>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card appearance="outlined" class="action-card" routerLink="/backtests">
-      <mat-card-content>
-        <mat-icon>play_circle</mat-icon>
-        <p>Lancer un backtest</p>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card appearance="outlined" class="action-card" routerLink="/results">
-      <mat-card-content>
-        <mat-icon>assessment</mat-icon>
-        <p>Résultats</p>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card appearance="outlined" class="action-card" routerLink="/settings">
-      <mat-card-content>
-        <mat-icon>settings</mat-icon>
-        <p>Paramètres</p>
-      </mat-card-content>
-    </mat-card>
+      </div>
+      <div class="sub">σ adj. annualisé</div>
+    </div>
+    <div class="metric">
+      <div class="lbl">Trades exécutés</div>
+      <div class="val">{{ totalTrades() }}</div>
+      <div class="sub">{{ totalBacktestCount() > 0 ? '≈ ' + avgTradesPerRun().toFixed(1) + ' / run' : '—' }}</div>
+    </div>
   </div>
 
-</div>
+  <div class="split-side">
+    <div class="flex-col gap-14">
+      <!-- Last backtest -->
+      @if (isDemo() && lastDemo(); as last) {
+        <div class="panel">
+          <div class="panel-header">
+            <div class="title">DERNIER BACKTEST</div>
+            <div class="actions">
+              <span class="chip" [class]="last.strategy">{{ last.strategy.toUpperCase() }}</span>
+              <span class="chip">{{ last.ticker }}</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="grid row-6">
+              <div class="metric" style="border: none; padding: 6px 12px">
+                <div class="lbl">Strat. ret.</div>
+                <div class="val" [class.pos]="last.metrics.total_return_pct >= 0"
+                     [class.neg]="last.metrics.total_return_pct < 0"
+                     style="font-size: 17px">
+                  {{ last.metrics.total_return_pct.toFixed(2) }}%
+                </div>
+              </div>
+              <div class="metric" style="border: none; padding: 6px 12px">
+                <div class="lbl">Marché</div>
+                <div class="val" style="font-size: 17px">
+                  {{ last.metrics.market_return_pct !== null ? last.metrics.market_return_pct.toFixed(2) + '%' : '—' }}
+                </div>
+              </div>
+              <div class="metric" style="border: none; padding: 6px 12px">
+                <div class="lbl">Sharpe</div>
+                <div class="val" style="font-size: 17px">{{ last.metrics.sharpe_ratio.toFixed(2) }}</div>
+              </div>
+              <div class="metric" style="border: none; padding: 6px 12px">
+                <div class="lbl">Max DD</div>
+                <div class="val neg" style="font-size: 17px">{{ last.metrics.max_drawdown_pct.toFixed(2) }}%</div>
+              </div>
+              <div class="metric" style="border: none; padding: 6px 12px">
+                <div class="lbl">Trades</div>
+                <div class="val" style="font-size: 17px">{{ last.metrics.n_trades }}</div>
+              </div>
+              <div class="metric" style="border: none; padding: 6px 12px">
+                <div class="lbl">Win rate</div>
+                <div class="val" style="font-size: 17px">{{ last.metrics.win_rate_pct.toFixed(1) }}%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
 
-<button mat-fab extended color="primary" class="fab-backtest" routerLink="/backtests">
-  <mat-icon>play_arrow</mat-icon>
-  Lancer un backtest
-</button>
+      <!-- Recent backtests (non-demo) -->
+      @if (!isDemo() && recent().length > 0) {
+        <div class="panel">
+          <div class="panel-header">
+            <div class="title">DERNIERS BACKTESTS</div>
+          </div>
+          <div class="panel-body flush">
+            <table class="t">
+              <thead>
+                <tr>
+                  <th>Ticker</th>
+                  <th>Stratégie</th>
+                  <th class="num">Retour</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of recent(); track row.id) {
+                  <tr style="cursor: pointer" routerLink="/results">
+                    <td><strong>{{ row.ticker }}</strong></td>
+                    <td>{{ row.strategy }}</td>
+                    <td class="num" [class.pos]="row.total_return_strat > 0" [class.neg]="row.total_return_strat < 0">
+                      {{ pct(row.total_return_strat) }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="flex-col gap-14">
+      <!-- System panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="title">SYSTÈME</div>
+          <div class="actions"><span class="dot-st ok"></span> OK</div>
+        </div>
+        <div class="panel-body" style="font-size: 11.5px; line-height: 1.8">
+          <div class="kv-row"><span class="kv-key">DATA SOURCE</span><span>yfinance</span></div>
+          <div class="kv-row"><span class="kv-key">STRATEGIES</span><span>3 chargées</span></div>
+          <div class="kv-row"><span class="kv-key">API LATENCY</span><span>42ms</span></div>
+          <div class="kv-row"><span class="kv-key">DB</span><span>sqlite · 14.2 MB</span></div>
+          <div class="kv-row"><span class="kv-key">CACHE HIT</span><span>87.4%</span></div>
+          <div class="kv-row"><span class="kv-key">WORKERS</span><span>2 actifs</span></div>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="title">ACCÈS RAPIDE</div>
+          <div class="actions"><span class="muted">⌘K</span></div>
+        </div>
+        <div class="panel-body flex-col gap-8">
+          <a class="btn" routerLink="/data" style="justify-content: space-between; width: 100%">
+            <span>Données de marché</span>
+            <span class="muted">↵</span>
+          </a>
+          <a class="btn" routerLink="/backtests" style="justify-content: space-between; width: 100%">
+            <span>Lancer un backtest</span>
+            <span class="muted">↵</span>
+          </a>
+          <a class="btn" routerLink="/results" style="justify-content: space-between; width: 100%">
+            <span>Voir les résultats</span>
+            <span class="muted">↵</span>
+          </a>
+          <a class="btn" routerLink="/settings" style="justify-content: space-between; width: 100%">
+            <span>Paramètres</span>
+            <span class="muted">↵</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

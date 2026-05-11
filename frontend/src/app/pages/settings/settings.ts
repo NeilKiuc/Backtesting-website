@@ -1,17 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatCardModule } from '@angular/material/card';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../services/auth.service';
 import { DataService } from '../../../services/data-service';
 
@@ -20,7 +9,6 @@ type CategoryId = 'compte' | 'apparence' | 'notifications' | 'securite' | 'confi
 interface Category {
   id: CategoryId;
   label: string;
-  icon: string;
 }
 
 interface SettingsModel {
@@ -45,13 +33,7 @@ const DEFAULT_MODEL: SettingsModel = {
 
 @Component({
   selector: 'app-settings',
-  imports: [
-    FormsModule,
-    MatButtonModule, MatSlideToggleModule, MatSelectModule,
-    MatInputModule, MatFormFieldModule, MatCardModule,
-    MatDividerModule, MatIconModule, MatSnackBarModule,
-    MatTooltipModule, MatChipsModule, MatProgressSpinnerModule,
-  ],
+  imports: [FormsModule, MatSnackBarModule],
   templateUrl: './settings.html',
   styleUrl: './settings.scss',
 })
@@ -63,12 +45,12 @@ export class Settings implements OnInit {
   languages = ['Français', 'English', 'Español'];
 
   categories: Category[] = [
-    { id: 'compte',          label: 'Compte',          icon: 'person'       },
-    { id: 'apparence',       label: 'Apparence',       icon: 'palette'      },
-    { id: 'notifications',   label: 'Notifications',   icon: 'notifications' },
-    { id: 'securite',        label: 'Sécurité',        icon: 'security'     },
-    { id: 'confidentialite', label: 'Confidentialité', icon: 'privacy_tip'  },
-    { id: 'danger',          label: 'Zone de danger',  icon: 'warning'      },
+    { id: 'compte',          label: 'Compte' },
+    { id: 'apparence',       label: 'Apparence' },
+    { id: 'notifications',   label: 'Notifications' },
+    { id: 'securite',        label: 'Sécurité' },
+    { id: 'confidentialite', label: 'Confidentialité' },
+    { id: 'danger',          label: 'Zone de danger' },
   ];
 
   activeCategory: CategoryId = 'compte';
@@ -78,19 +60,16 @@ export class Settings implements OnInit {
   saving = false;
 
   ngOnInit() {
-    // Pré-remplir depuis le user connecté
     const user = this.auth.getUser();
     if (user) {
       this.model.username = user.username;
       this.model.email    = user.email;
     }
 
-    // Charger les préférences locales (thème, langue, etc.)
     const raw = localStorage.getItem('app-settings');
     if (raw) {
       try {
         const parsed = JSON.parse(raw) as Partial<SettingsModel>;
-        // On garde le username/email du user connecté, pas celui du localStorage
         const { username, email, ...prefs } = parsed;
         this.model = { ...this.model, ...prefs };
       } catch { /* ignore */ }
@@ -121,12 +100,10 @@ export class Settings implements OnInit {
     if (!this.hasChanges) return;
     const user = this.auth.getUser();
 
-    // Si username a changé et user connecté → sauvegarde en BDD
     if (user && this.model.username !== this.initialModel.username) {
       this.saving = true;
       this.dataService.updateUsername(user.id, this.model.username).subscribe({
         next: (updated) => {
-          // Met à jour le localStorage auth avec le nouveau username
           this.auth.saveUser({ ...user, username: updated.username });
           this.saving = false;
           this.finalizeSave();
@@ -143,15 +120,11 @@ export class Settings implements OnInit {
   }
 
   private finalizeSave() {
-    // Sauvegarde les préférences locales (thème, langue, etc.)
     const { username, email, ...prefs } = this.model;
     localStorage.setItem('app-settings', JSON.stringify(prefs));
     this.initialModel = structuredClone(this.model);
     this.hasChanges = false;
-    this.snackBar.open('Paramètres enregistrés ✓', 'Fermer', {
-      duration: 3000,
-      panelClass: ['snackbar-success'],
-    });
+    this.snackBar.open('Paramètres enregistrés', 'Fermer', { duration: 3000 });
   }
 
   resetSettings() {

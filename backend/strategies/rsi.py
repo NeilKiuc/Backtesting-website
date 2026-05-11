@@ -28,6 +28,18 @@ class RSIStrategy(BaseStrategy):
     def name(self) -> str:
         return "rsi"
 
+    @property
+    def description(self) -> str:
+        return "Mesure la vitesse des mouvements de prix. Identifie les zones de surachat (>70) et survente (<30)."
+
+    @property
+    def category(self) -> str:
+        return "momentum"
+
+    @property
+    def default_params(self) -> dict[str, float]:
+        return {"length": 14, "overbought": 70, "oversold": 30}
+
     def compute_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
 

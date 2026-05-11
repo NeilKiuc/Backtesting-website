@@ -1,37 +1,51 @@
-<h1>Data Page</h1>
+<div class="page">
+  <div class="crumb">
+    <span>T3RM</span><span class="sep">/</span><span class="now">DATA</span>
+  </div>
+  <div class="flex justify-between items-center mb-14" style="margin-top: 4px">
+    <h1>Marché</h1>
+    <div class="flex gap-8">
+      <div class="seg">
+        <button [class.on]="ticker() === 'sp500'" (click)="ticker.set('sp500')">SP500</button>
+        <button [class.on]="ticker() === 'nasdaq'" (click)="ticker.set('nasdaq')">NASDAQ</button>
+      </div>
+      <div class="seg">
+        <button [class.on]="period() === '1D'" (click)="period.set('1D')">1D</button>
+        <button [class.on]="period() === '1M'" (click)="period.set('1M')">1M</button>
+        <button [class.on]="period() === '1Y'" (click)="period.set('1Y')">1Y</button>
+        <button [class.on]="period() === '5Y'" (click)="period.set('5Y')">5Y</button>
+      </div>
+    </div>
+  </div>
 
-<div style="display: flex; gap: 16px; align-items: center; margin-bottom: 20px; margin-top: 30px;">
-  <mat-form-field>
-    <mat-label>Data Base</mat-label>
-    <mat-select [value]="ticker()" (selectionChange)="ticker.set($event.value)">
-        <mat-option value="sp500">S&P 500</mat-option>
-        <mat-option value="nasdaq">NASDAQ</mat-option>
-    </mat-select>
-  </mat-form-field>
-
-  <mat-form-field>
-    <mat-label>Time Period</mat-label>
-    <mat-select [value]="period()" (selectionChange)="period.set($event.value)">
-        <mat-option value="1D">1 Day</mat-option>
-        <mat-option value="1M">1 Month</mat-option>
-        <mat-option value="1Y">1 Year</mat-option>
-        <mat-option value="5Y">5 Years</mat-option>
-    </mat-select>
-  </mat-form-field>
-</div>
-
-<div style="margin-top: 20px;">
   @if (isLoading()) {
-    <p><mat-icon>hourglass</mat-icon> Récupération des données...</p>
+    <div class="panel">
+      <div class="panel-body" style="text-align: center; padding: 40px">
+        <span class="muted" style="font-size: 11px; letter-spacing: 0.14em">CHARGEMENT DES DONNÉES…</span>
+      </div>
+    </div>
   } @else if (errorMessage()) {
-    <p style="color: red;"><mat-icon>close</mat-icon> {{ errorMessage() }}</p>
+    <div class="panel">
+      <div class="panel-body" style="text-align: center; padding: 40px">
+        <span class="neg" style="font-size: 11px; letter-spacing: 0.14em">✕ {{ errorMessage() }}</span>
+      </div>
+    </div>
   } @else if (marketData().length > 0) {
-    <div style="background: #f4f4f4; padding: 15px; border-radius: 8px; width: 100%; box-sizing: border-box;">
-      <app-market-chart
-        [data]="marketData()"
-        [period]="period()"
-        [ticker]="ticker()"
-      ></app-market-chart>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="title">OHLC · {{ ticker().toUpperCase() }} · {{ period() }}</div>
+        <div class="actions">
+          <span class="muted">candles</span>
+          <span class="chip">UTC</span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <app-market-chart
+          [data]="marketData()"
+          [period]="period()"
+          [ticker]="ticker()"
+        ></app-market-chart>
+      </div>
     </div>
   }
 </div>

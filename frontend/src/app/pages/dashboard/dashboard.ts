@@ -1,17 +1,12 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DatePipe } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDividerModule } from '@angular/material/divider';
 import { AuthService } from '../../../services/auth.service';
 import { DataService, BacktestRecord, NormalizedResult } from '../../../services/data-service';
 import { BacktestHistoryService } from '../../../services/backtest-history.service';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [MatCardModule, MatIconModule, MatButtonModule, MatDividerModule, RouterLink, DatePipe],
+  imports: [RouterLink],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -33,7 +28,7 @@ export class Dashboard implements OnInit {
     if (!h.length) return null;
     return h.reduce((best, r) => r.total_return_strat > best.total_return_strat ? r : best);
   });
-  recent = computed(() => this.history().slice(0, 3));
+  recent = computed(() => this.history().slice(0, 5));
 
   demoBestResult = computed(() => {
     const h = this.demoHistory();
@@ -41,6 +36,30 @@ export class Dashboard implements OnInit {
     return h.reduce((best, r) =>
       r.metrics.total_return_pct > best.metrics.total_return_pct ? r : best
     );
+  });
+
+  totalTrades = computed(() => {
+    if (this.isDemo()) {
+      return this.demoHistory().reduce((a, r) => a + r.metrics.n_trades, 0);
+    }
+    return 0;
+  });
+
+  totalBacktestCount = computed(() => {
+    return this.isDemo() ? this.demoHistory().length : this.history().length;
+  });
+
+  avgTradesPerRun = computed(() => {
+    const count = this.totalBacktestCount();
+    if (!count) return 0;
+    return this.totalTrades() / count;
+  });
+
+  medianSharpe = computed(() => {
+    const h = this.demoHistory();
+    if (!h.length) return 0;
+    const sorted = h.map(x => x.metrics.sharpe_ratio).sort((a, b) => a - b);
+    return sorted[Math.floor(sorted.length / 2)];
   });
 
   ngOnInit() {
@@ -63,4 +82,6 @@ export class Dashboard implements OnInit {
   pct(v: number): string {
     return (v * 100).toFixed(2) + '%';
   }
+
+  String = String;
 }

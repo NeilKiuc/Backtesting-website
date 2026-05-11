@@ -1,13 +1,10 @@
 import { Component, inject, signal, effect } from '@angular/core';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
 import { MarketChartComponent } from '../../components/market-chart/market-chart';
 import { DataService, MarketData } from '../../../services/data-service';
-import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-data',
-  imports: [MarketChartComponent, MatFormFieldModule, MatSelectModule, MatIcon],
+  imports: [MarketChartComponent],
   templateUrl: './data.html',
   styleUrl: './data.scss',
 })
