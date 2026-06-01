@@ -49,3 +49,9 @@ skills-lock.json
 
 # DB
 *.db
+
+# Tests / build artifacts
+.coverage
+htmlcov/
+*.log
+frontend/out-tsc/

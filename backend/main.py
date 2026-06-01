@@ -13,7 +13,7 @@ from database import Base, engine, get_db
 import models  # noqa: F401 — enregistre les tables SQLAlchemy avant create_all
 from models import Backtest
 from cache import get_cached_data, store_cached_data
-from data import TICKER_MAP
+from data import TICKER_MAP, PERIOD_CONFIG
 
 import data
 from strategies import STRATEGIES_REGISTRY
@@ -57,17 +57,12 @@ def fetch_market_data(ticker: str, period: str, db: Session | None = None) -> pd
             df = df.set_index("Time").sort_index()
             return df
 
-    windows = {
-        "1D": timedelta(days=1),
-        "1M": timedelta(days=30),
-        "1Y": timedelta(days=365),
-        "5Y": timedelta(days=365 * 5),
-    }
-    window   = windows.get(period_key, timedelta(days=365))
-    end      = datetime.today()
-    start    = end - window
+    # Même configuration période/intervalle que l'endpoint /api/data : pour la
+    # période « 1J » on utilise un intervalle intraday (5 min), sinon une seule
+    # barre journalière serait renvoyée (insuffisant pour un backtest).
+    config = PERIOD_CONFIG.get(period_key, PERIOD_CONFIG["1Y"])
 
-    df = yf.download(symbol, start=start, end=end, auto_adjust=True)
+    df = yf.download(symbol, period=config["period"], interval=config["interval"], auto_adjust=True)
 
     if df.empty:
         raise HTTPException(status_code=404, detail=f"Ticker '{ticker}' introuvable sur Yahoo Finance.")
@@ -79,7 +74,8 @@ def fetch_market_data(ticker: str, period: str, db: Session | None = None) -> pd
     if db is not None:
         records = df.reset_index().to_dict(orient="records")
         for r in records:
-            r["Time"] = r["Time"].strftime("%Y-%m-%d")
+            # On conserve l'heure (utile en intraday) pour que le cache soit fidèle.
+            r["Time"] = r["Time"].strftime("%Y-%m-%d %H:%M:%S")
         store_cached_data(db, symbol, period_key, records)
 
     return df

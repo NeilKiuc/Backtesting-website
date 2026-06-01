@@ -1,0 +1,236 @@
+% =====================================================================
+%  Annexe technique : comprendre les points délicats (tests, cache, auth...)
+%  Compilation : pdflatex annexe_technique.tex  (ou Overleaf, ou Tectonic)
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{accent}{RGB}{30,90,150}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{gray!8},
+  frame=single, rulecolor=\color{gray!40},
+  breaklines=true, columns=fullflexible,
+  showstringspaces=false, xleftmargin=10pt,
+}
+
+\setlength{\emergencystretch}{3em}
+\sloppy
+
+\title{\vspace{-1.5cm}\textbf{Annexe technique : les points délicats expliqués}\\[2pt]
+\large Plateforme de backtesting PRO3600 --- aide à la soutenance}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+\vspace{-0.8cm}
+
+\noindent\textit{Ce document explique, en langage simple, les parties du projet
+les plus susceptibles de soulever des questions. Objectif : pouvoir les défendre
+sans être pris au dépourvu. La partie sur les tests Vitest est volontairement
+détaillée.}
+
+% =====================================================================
+\section{Les tests automatisés : l'idée générale}
+% =====================================================================
+Un \textbf{test automatisé} est un petit programme qui vérifie qu'une partie de
+notre code fait bien ce qu'on attend. Au lieu de cliquer à la main dans
+l'application à chaque modification, on lance une commande et l'ordinateur
+vérifie tout en quelques secondes. S'il affiche « \emph{vert} », tout va bien ;
+s'il affiche « \emph{rouge} », quelque chose a cassé.
+
+On distingue deux types :
+\begin{itemize}[leftmargin=1.4em,nosep]
+  \item \textbf{test unitaire} : on teste \emph{une} fonction isolée
+        (ex.\ « ce calcul de rendement donne-t-il le bon nombre~? ») ;
+  \item \textbf{test d'intégration} : on teste plusieurs morceaux ensemble
+        (ex.\ « quand on appelle l'API pour lancer un backtest, renvoie-t-elle le
+        bon résultat~? »).
+\end{itemize}
+Dans le projet : \textbf{pytest} teste le backend (Python), \textbf{Vitest} teste
+le frontend (Angular/TypeScript).
+
+% =====================================================================
+\section{Les tests Vitest (frontend) --- en détail}
+% =====================================================================
+\textbf{Vitest} est l'outil qui exécute nos tests côté frontend. C'est un
+« lanceur de tests » : on lui écrit des petites fonctions de vérification, il les
+exécute toutes et nous dit combien passent. Dans notre projet Angular, on le
+lance avec \code{ng test} (ou \code{npm test}).
+
+\subsection{La structure d'un test (3 mots-clés)}
+Un test Vitest s'écrit toujours avec trois éléments :
+\begin{itemize}[leftmargin=1.4em,nosep]
+  \item \code{describe(...)} : un \textbf{groupe} de tests (ex.\ tous les tests
+        d'un service) ;
+  \item \code{it(...)} : \textbf{un} test précis, avec une phrase qui décrit ce
+        qu'il vérifie ;
+  \item \code{expect(...).toBe(...)} : la \textbf{vérification} (« je m'attends à
+        ce que ce résultat soit égal à... »).
+\end{itemize}
+
+Exemple réel (simplifié) tiré du service d'authentification :
+\begin{lstlisting}
+describe('AuthService', () => {              // groupe
+  it('est authentifie si un user est stocke', () => {   // un test
+    localStorage.setItem('auth_user', '{"id":1}');
+    const auth = new AuthService();
+    // isAuthenticated() doit valoir true puisqu'un user est present
+    expect(/* resultat */ true).toBe(true);  // verification
+  });
+});
+\end{lstlisting}
+On lit cela comme une phrase : « \emph{dans le groupe AuthService, le test « est
+authentifié si un user est stocké » : on met un user dans le stockage, et on
+s'attend à ce que isAuthenticated renvoie vrai} ».
+
+\subsection{TestBed : un mini-Angular pour les tests}
+Un composant Angular (une page, par exemple) a besoin de ses \emph{dépendances}
+pour fonctionner : le routeur (pour naviguer), le client HTTP (pour parler au
+serveur), etc. Dans un vrai navigateur, Angular les fournit automatiquement. Dans
+un test, il faut les fournir nous-mêmes : c'est le rôle de \textbf{TestBed}, qui
+monte un « mini-Angular » de laboratoire. D'où des lignes comme :
+\begin{lstlisting}
+TestBed.configureTestingModule({
+  providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+});
+const fixture = TestBed.createComponent(Backtests);  // cree la page en labo
+\end{lstlisting}
+Traduction : « prépare un mini-Angular avec un faux routeur et un faux client
+HTTP, puis crée la page Backtests dedans ». C'est pour cela que, sans ces
+\emph{providers}, certains tests échouaient avec « \emph{No provider for
+ActivatedRoute} » : la page réclamait le routeur, qu'on avait oublié de fournir.
+
+\subsection{HttpTestingController : tester sans vrai serveur}
+Nos services appellent l'API (ex.\ \code{POST /api/backtest}). On ne veut pas
+qu'un test dépende d'un vrai serveur allumé (ce serait lent et fragile). On
+utilise donc \textbf{HttpTestingController}, qui \emph{intercepte} les appels HTTP
+et nous laisse fournir une fausse réponse :
+\begin{lstlisting}
+service.runBacktest(requete).subscribe();
+const appel = httpMock.expectOne('.../api/backtest'); // on capture l'appel
+expect(appel.request.method).toBe('POST');            // bon verbe HTTP ?
+appel.flush({});                                       // fausse reponse renvoyee
+\end{lstlisting}
+Traduction : « j'appelle runBacktest ; je vérifie qu'un \code{POST} part bien vers
+\code{/api/backtest} ; et je réponds avec un objet vide à la place du serveur ».
+On teste donc que \emph{notre} code appelle la bonne URL avec la bonne méthode,
+sans réseau.
+
+\subsection{Pourquoi on ne dessine pas les graphiques dans les tests}
+Les tests tournent dans \textbf{jsdom}, un « faux navigateur » en mémoire (sans
+écran réel). Or la librairie de graphiques (\code{lightweight-charts}) a besoin
+d'un vrai canvas pour dessiner, ce que jsdom n'a pas. Nos tests évitent donc de
+déclencher l'affichage des graphiques (par exemple en ne fournissant pas de
+résultat à afficher). On teste la \emph{logique}, pas le rendu visuel du
+graphique.
+
+\subsection{Ce que vérifient concrètement nos tests frontend}
+\begin{itemize}[leftmargin=1.4em,nosep]
+  \item \textbf{AuthService} : un utilisateur stocké rend l'application
+        « connectée » ; le mode démo aussi ; la déconnexion vide le stockage.
+  \item \textbf{BacktestHistoryService} : l'historique local garde au maximum les
+        5 derniers backtests (on en ajoute 7, on vérifie qu'il n'en reste que 5).
+  \item \textbf{DataService} : chaque méthode appelle la bonne URL avec la bonne
+        méthode HTTP (GET, POST, DELETE...).
+  \item \textbf{Garde de route} (\code{authGuard}) : si on n'est pas connecté, on
+        est bien redirigé vers \code{/login}.
+  \item \textbf{Pages} (backtests, results, dashboard...) : elles se créent sans
+        erreur et leurs petites fonctions (formatage de pourcentage, choix des
+        paramètres par défaut d'une stratégie, explication d'une stratégie...)
+        renvoient les bonnes valeurs.
+\end{itemize}
+
+\subsection{Le « scaffolding » qu'il a fallu réparer}
+Au départ, \code{ng test} refusait de compiler les fichiers de tests
+(\code{*.spec.ts}) : il manquait un fichier de configuration
+(\code{tsconfig.spec.json}) indiquant à TypeScript d'inclure les tests, et les
+types de Vitest. Une fois ces deux éléments ajoutés, les tests compilent et
+s'exécutent. \emph{À retenir} : si on demande « pourquoi avoir touché à la config
+de test~? », la réponse est « les tests n'étaient pas branchés, on a ajouté le
+\code{tsconfig.spec.json} manquant ».
+
+\subsection{Comment les lancer}
+\begin{lstlisting}
+cd frontend
+npm test            # equivaut a : ng test --no-watch
+\end{lstlisting}
+Le résultat ressemble à \code{Test Files 11 passed (11) / Tests 41 passed (41)} :
+cela veut dire que les 41 vérifications réparties dans 11 fichiers passent toutes.
+
+% =====================================================================
+\section{Les tests pytest (backend) --- en bref}
+% =====================================================================
+Même principe, côté Python, avec \textbf{pytest}. Deux idées valent la peine
+d'être comprises :
+\begin{itemize}[leftmargin=1.4em,nosep]
+  \item \textbf{Scénario « calculé à la main »} : pour le moteur de backtest, on
+        fournit une mini-série de prix dont on a calculé soi-même, sur papier, le
+        rendement, le ratio de Sharpe, etc. Le test vérifie que le code retrouve
+        exactement ces nombres. C'est la preuve que les formules sont justes.
+  \item \textbf{« Mock » de Yahoo Finance} : on remplace l'appel réseau qui
+        télécharge les vrais cours par une fausse fonction qui renvoie des données
+        fabriquées. Ainsi les tests sont rapides, reproductibles et ne dépendent
+        pas d'Internet ni de la base de production (on utilise une petite base
+        SQLite temporaire).
+\end{itemize}
+Lancement : \code{cd backend} puis \code{pytest} (57 tests).
+
+% =====================================================================
+\section{Autres points « chauds » expliqués}
+% =====================================================================
+\begin{description}[leftmargin=1.2em,style=nextline]
+  \item[Éviter de « tricher » (look-ahead).] Dans un backtest, on ne doit jamais
+        utiliser une information qu'on ne connaîtrait pas encore en réalité. Notre
+        moteur décale donc le signal d'une journée (\code{signal.shift(1)}) : la
+        décision prise aujourd'hui s'applique au rendement de demain, pas
+        d'aujourd'hui.
+  \item[Le cache des cours (24\,h).] Pour ne pas redemander sans cesse les mêmes
+        données à Yahoo Finance, on les stocke en base (table
+        \code{market\_data\_cache}) pendant 24~heures. Si on relance le même
+        ticker/période dans la journée, on lit le cache au lieu d'appeler le
+        réseau --- c'est plus rapide et plus fiable.
+  \item[Connexion Google (OAuth) et mode démo.] OAuth est le mécanisme standard
+        « se connecter avec Google » : Google authentifie l'utilisateur et nous
+        renvoie son identité, sans qu'on gère de mot de passe. Le \emph{mode démo}
+        permet d'utiliser l'application sans compte (les données restent alors
+        dans le navigateur).
+  \item[Le mode avancé (import de trades).] En plus des stratégies intégrées,
+        l'utilisateur peut envoyer ses propres transactions (fichier JSON) via
+        \code{/api/backtest/upload}. Le serveur les valide puis calcule des
+        métriques financières plus poussées : ratio de Sharpe, de \textbf{Sortino}
+        (variante qui ne pénalise que les pertes), \textbf{profit factor} (gains
+        totaux / pertes totales), espérance par trade, etc.
+  \item[Angular « standalone » et « signals ».] Notre application n'utilise pas
+        l'ancien système de modules d'Angular (\emph{standalone}) et gère sa
+        réactivité avec des \emph{signals} (des variables qui préviennent
+        automatiquement l'interface quand elles changent). C'est la manière
+        moderne (Angular~21).
+  \item[ORM SQLAlchemy.] Plutôt que d'écrire du SQL à la main, on décrit nos
+        tables comme des classes Python (\code{User}, \code{Backtest}...) et la
+        librairie SQLAlchemy se charge de dialoguer avec la base. Cela évite les
+        erreurs et fonctionne aussi bien avec SQLite (local) que PostgreSQL (prod).
+\end{description}
+
+\bigskip
+\noindent\textit{En résumé pour la soutenance : nous avons des tests unitaires et
+d'intégration, lancés par pytest (backend) et Vitest (frontend), qui passent tous.
+Les choix « délicats » (anti-triche du backtest, cache, OAuth, mode avancé) ont
+chacun une raison simple et pratique, rappelée ci-dessus.}
+
+\end{document}

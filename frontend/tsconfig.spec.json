@@ -1,0 +1,13 @@
+/* Configuration TypeScript dédiée aux tests unitaires (vitest).
+   Contrairement à tsconfig.app.json, ce fichier INCLUT les *.spec.ts
+   afin qu'ils fassent partie de la compilation Angular. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/spec",
+    "types": ["vitest/globals"]
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

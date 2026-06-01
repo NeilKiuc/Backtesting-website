@@ -1,0 +1,859 @@
+% =====================================================================
+%  PRO3600 --- Rapport de projet : Plateforme web de backtesting
+%  Compilation : pdflatex rapport.tex  (x2 pour la table des matières)
+%  ou : latexmk -pdf rapport.tex
+%  Compatible Overleaf (moteur pdfLaTeX).
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage[a4paper,margin=2.4cm]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit,calc}
+\usepackage[hidelinks]{hyperref}
+
+% ---- Couleurs ----
+\definecolor{codebg}{RGB}{245,245,245}
+\definecolor{codekw}{RGB}{0,90,160}
+\definecolor{codecmt}{RGB}{100,120,100}
+\definecolor{codestr}{RGB}{160,60,40}
+\definecolor{accent}{RGB}{30,90,150}
+
+% ---- Listings (code) ----
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codebg},
+  keywordstyle=\color{codekw}\bfseries,
+  commentstyle=\color{codecmt}\itshape,
+  stringstyle=\color{codestr},
+  numbers=left, numberstyle=\tiny\color{gray}, numbersep=8pt,
+  frame=single, rulecolor=\color{gray!40},
+  breaklines=true, showstringspaces=false,
+  tabsize=2, captionpos=b, xleftmargin=14pt,
+}
+\lstdefinestyle{py}{language=Python}
+\lstdefinestyle{ts}{language=Java} % proche TypeScript pour la coloration
+\lstdefinestyle{sh}{language=bash}
+
+% ---- En-têtes ----
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small PRO3600 --- Backtesting}
+\fancyhead[R]{\small\leftmark}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\section}{\Large\bfseries\color{accent}}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+% ---- Images : placeholders intelligents ----
+% Déposez les images dans le sous-dossier images/. Tant qu'un fichier est absent,
+% une case grise légendée s'affiche (le document compile dans tous les cas) ;
+% dès que le fichier existe, il est inséré automatiquement.
+\graphicspath{{images/}}
+% \figph{fichier}{largeur}{hauteur-case}{légende}
+\newcommand{\figph}[4]{%
+  \begin{figure}[H]\centering
+  \IfFileExists{images/#1}{\includegraphics[width=#2]{#1}}{%
+    {\setlength{\fboxsep}{0pt}%
+     \fcolorbox{gray!55}{gray!10}{\parbox[c][#3][c]{#2}{\centering
+       \footnotesize\itshape\color{gray!80}[\,image à insérer\,]\\[3pt]\texttt{images/#1}}}}}%
+  \caption{#4}
+  \end{figure}}
+% Logo (sans flottant, pour la page de garde)
+\newcommand{\logoph}{%
+  \IfFileExists{images/logo-tsp.png}{\includegraphics[width=3.8cm]{logo-tsp.png}}{%
+    {\setlength{\fboxsep}{0pt}%
+     \fcolorbox{gray!55}{gray!10}{\parbox[c][2cm][c]{3.8cm}{\centering
+       \footnotesize\itshape\color{gray!80}[\,logo TSP\,]\\[2pt]\texttt{images/logo-tsp.png}}}}}}
+
+% Évite les débordements de ligne (overfull hbox) dans les paragraphes
+\setlength{\emergencystretch}{3em}
+\sloppy
+
+% =====================================================================
+\begin{document}
+
+% --------------------- PAGE DE GARDE ---------------------
+\begin{titlepage}
+\centering
+\vspace*{1.0cm}
+\logoph\par
+\vspace{1.0cm}
+{\scshape\Large Télécom SudParis --- Cycle Ingénieur\par}
+\vspace{0.4cm}
+{\scshape\large Module PRO 3600 --- Projet de Développement Logiciel\par}
+\vspace{2.5cm}
+{\Huge\bfseries RAPPORT DE PROJET\par}
+\vspace{0.5cm}
+{\LARGE\bfseries Plateforme web de backtesting algorithmique\par}
+\vspace{2.5cm}
+{\large\textbf{Équipe projet :}\par}
+\vspace{0.3cm}
+{\large Adrien \textsc{Etienne} \quad Neil \textsc{Kiuchi} \quad Elio \textsc{Bonnenfant}\par}
+\vspace{0.2cm}
+{\large Robinson \textsc{Cerceau} \quad Mattéo \textsc{Machnik-Hauchart}\par}
+\vspace{1.5cm}
+{\large\textbf{Encadrant du projet :}\par}
+\vspace{0.3cm}
+{\large M. \textsc{Romero}\par}
+\vfill
+{\large\textbf{Version du document :} 3.0 (Livrable final : logiciel, tests et rapport)\par}
+{\large\textbf{Date :} \today\par}
+\end{titlepage}
+
+% --------------------- TABLE DES MATIÈRES ---------------------
+\tableofcontents
+\newpage
+
+% =====================================================================
+\section{Introduction}
+% =====================================================================
+Ce document constitue le rapport final du projet PRO3600 mené par notre équipe.
+Il prolonge et enrichit le pré-rapport (version~1.0) en y intégrant l'histoire
+complète du projet, la conception détaillée du logiciel effectivement livré, les
+résultats de la campagne de tests, un bilan objectif/réalisation et un manuel
+utilisateur. Conformément aux attendus du livrable~3, il vise à permettre à une
+personne ignorant tout du projet d'en comprendre les tenants et aboutissants, à
+un développeur de maintenir le logiciel, et à un utilisateur de se servir de
+l'application.
+
+\medskip
+Le logiciel livré est une \textbf{plateforme web de backtesting de stratégies de
+trading} sur données financières réelles. Elle est composée d'une API
+\textbf{FastAPI} (Python) et d'une application monopage \textbf{Angular~21}, et
+permet à un utilisateur de tester des stratégies d'analyse technique (MACD, RSI,
+croisement de moyennes mobiles) sur des indices boursiers, d'en visualiser les
+performances et de conserver un historique de ses analyses.
+
+% =====================================================================
+\section{Cadrage du projet et périmètre}
+% =====================================================================
+\subsection{Motivation et objectifs}
+En finance quantitative, il est indispensable de tester rigoureusement une
+stratégie d'investissement sur des données historiques avant de l'appliquer sur
+les marchés réels avec de véritables capitaux. Ce processus de simulation,
+appelé \emph{backtesting}, permet de valider des intuitions mathématiques et
+d'évaluer la robustesse d'un modèle face aux conditions passées. L'objectif du
+projet est de concevoir une plateforme web interactive dédiée à cette pratique,
+agissant comme un laboratoire virtuel d'analyse de modèles d'investissement.
+
+\medskip
+Les solutions de backtesting existantes sont souvent complexes ou nécessitent des
+compétences avancées en programmation (scripts, API). La valeur ajoutée de notre
+projet est d'offrir une alternative \textbf{ergonomique et visuelle}, rendant
+l'analyse quantitative accessible directement depuis un navigateur web :
+l'application évalue automatiquement performances et risques, et restitue les
+résultats sous forme de graphiques et de métriques financières standards.
+
+\subsection{Définition du Produit Minimum Viable (MVP)}
+L'objectif du premier livrable était de valider l'architecture globale
+(communication Front-End / Back-End) et de démontrer la faisabilité des calculs.
+Le MVP visait à permettre à un utilisateur de charger un jeu de données, d'y
+appliquer une stratégie de base et de visualiser le résultat financier. Le
+périmètre du MVP comprenait :
+
+\begin{enumerate}[label=\arabic*)]
+  \item \textbf{Gestion des données} : chargement d'un historique financier local
+        (CSV, p.~ex. le S\&P~500 sur 5 ans).
+  \item \textbf{Moteur de backtesting} : implémentation de plusieurs stratégies
+        d'analyse technique standard (MA, MA Crossover, MACD, RSI) et simulation
+        de l'exécution des ordres d'achat/vente.
+  \item \textbf{Évaluation et métriques} : calcul du rendement cumulatif de la
+        stratégie sur la période.
+  \item \textbf{Interface utilisateur} : une interface web, un bouton de
+        déclenchement du backtest, un graphique du prix de l'actif et l'affichage
+        de la performance finale.
+\end{enumerate}
+
+Étaient explicitement \emph{exclus} du MVP : la connexion à des API publiques
+temps réel, une base de données pour les historiques utilisateurs, des stratégies
+complexes multiples et les métriques de risque avancées (Sharpe, volatilité).
+
+\subsection{Évolution du périmètre : au-delà du MVP}
+\label{sec:evolution}
+Une fois le MVP validé, l'équipe a poursuivi le développement bien au-delà du
+périmètre initial. Plusieurs fonctionnalités classées « après-MVP » dans le
+pré-rapport ont en réalité été \textbf{réalisées} :
+\begin{itemize}[leftmargin=1.4em]
+  \item connexion à une \textbf{API publique temps réel} (Yahoo Finance via
+        \code{yfinance}) à la place du CSV statique ;
+  \item \textbf{base de données} (Supabase PostgreSQL) pour persister l'historique
+        des backtests par utilisateur ;
+  \item \textbf{métriques de risque avancées} : ratio de Sharpe annualisé,
+        \emph{maximum drawdown}, taux de réussite, nombre de transactions ;
+  \item \textbf{authentification} via Google OAuth et un mode démo sans compte.
+\end{itemize}
+Ce dépassement du périmètre est analysé dans le bilan (section~\ref{sec:bilan}).
+
+\subsection{Stack technologique}
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Couche} & \textbf{Technologies} \\
+\midrule
+Back-End  & Python 3.11, FastAPI, Pandas, NumPy, \code{yfinance}, SQLAlchemy~2.0 \\
+Base de données & SQLite (développement) / PostgreSQL Supabase (production) \\
+Authentification & Authlib (Google OAuth/OIDC), sessions signées Starlette \\
+Front-End & Angular~21 (standalone), Angular Material, \code{lightweight-charts} \\
+Tests     & pytest + coverage (back) ; Vitest + Angular TestBed (front) \\
+Outils    & Git \& GitHub, Discord, Google Drive \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\section{Organisation de l'équipe}
+% =====================================================================
+Afin de paralléliser le travail et de garantir l'efficacité du développement,
+l'équipe a défini des pôles de compétences (non figés).
+
+\subsection{Attribution des rôles et pôles}
+\begin{center}
+\begin{tabular}{@{}p{4.2cm}p{4.4cm}p{5.6cm}@{}}
+\toprule
+\textbf{Pôle} & \textbf{Responsables} & \textbf{Périmètre} \\
+\midrule
+Frontend & Robinson Cerceau, Elio Bonnenfant & SPA Angular, interface de
+paramétrage, intégration des graphiques, appels API. \\
+Backend (architecture \& API) & Neil Kiuchi, Mattéo Machnik-Hauchart &
+Architecture serveur, endpoints, gestion des requêtes, sécurisation et erreurs. \\
+Data & Elio Bonnenfant & Extraction/nettoyage des historiques de prix, format
+OHLCV, intégration de l'API publique. \\
+Backtesting \& stratégies & Adrien Etienne & Simulateur de trading, algorithmes
+d'analyse technique, génération des signaux, métriques d'évaluation. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Méthodologie de travail et outils collaboratifs}
+Nous avons adopté une approche \textbf{Agile} : le développement est découpé en
+cycles itératifs (sprints), permettant de rester flexibles, d'adapter les
+objectifs aux difficultés rencontrées et de livrer de manière incrémentale. Un
+\textbf{diagramme de Gantt} complète cette approche pour une vision macroscopique
+et le repérage des jalons (livrables).
+
+\medskip
+L'environnement collaboratif s'articule autour de trois outils :
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Discord} --- communication temps réel (salons thématiques, points
+        d'avancement, réunions vocales) ;
+  \item \textbf{GitHub} --- gestion de version du code, suivi des modifications,
+        travail simultané par branches (\code{features}, \code{fix}) ;
+  \item \textbf{Google Drive} --- centralisation documentaire (cahiers des charges,
+        comptes rendus, recherches bibliographiques, rédaction des rapports).
+\end{itemize}
+
+% =====================================================================
+\section{Gestion et histoire du projet}
+% =====================================================================
+\subsection{Planification globale et jalons}
+Un plan de charge sous forme de tableur a recensé l'ensemble des tâches, estimé
+les temps de réalisation et réparti les responsabilités ; mis à jour
+régulièrement, il a permis de comparer estimations et temps réellement investi.
+Le diagramme de Gantt prévisionnel a servi de feuille de route. Les jalons
+principaux sont rappelés ci-dessous.
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Jalon} & \textbf{Échéance} & \textbf{Contenu} \\
+\midrule
+Livrable 1 & 23 février & Définition du MVP, planning du sprint~1 \\
+Livrable 2 & 27 mars    & Itérations intermédiaires \\
+Livrable 3 & 15 mai     & Logiciel, tests et rapport final \\
+Soutenance & 11--12 juin & Présentation et démonstration \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\medskip
+\noindent Phases planifiées (Gantt) : choix de l'architecture (janv.--23 fév.),
+choix back/front (15 janv.--23 fév.), MVP (22 fév.--8 mars), développement frontend
+(22 fév.--15 mai), développement backend avec données temps réel (22 fév.--24 avr.),
+modélisation des tables de la base (3 mars--7 mai), développement du moteur de
+backtesting et stratégies (10 mars--7 mai), phase de test (10 avr.--15 mai),
+préparation de la soutenance (15 mai--11 juin).
+
+\figph{gantt.png}{0.95\linewidth}{6.5cm}{Diagramme de Gantt prévisionnel du projet (jalons et phases de développement).}
+
+\subsection{Stratégie de découpage en sprints}
+Conformément à l'approche Agile, le développement a été découpé en itérations
+courtes dotées d'objectifs précis. Le \textbf{sprint~1} (MVP, échéance 9~mars)
+visait à mettre en place l'environnement de travail et à valider la communication
+de bout en bout entre Angular et FastAPI sur un jeu de données.
+
+\paragraph{Carnet du sprint 1 (extrait).}
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Pôle Architecture} : création du dépôt GitHub, arborescence
+        \code{/backend} et \code{/frontend}, \code{.gitignore}, README de lancement.
+  \item \textbf{Pôle Back-End \& Data} : initialisation de FastAPI et d'une route
+        de test, lecture d'un CSV avec Pandas, route renvoyant les données en JSON.
+  \item \textbf{Pôle Front-End} : initialisation du projet Angular, structure des
+        pages, intégration d'une librairie de graphiques, appel \code{fetch} vers
+        le backend.
+\end{itemize}
+Les sprints suivants ont porté sur le remplacement du CSV par l'API temps réel,
+la modélisation de la base de données, le moteur de backtesting et les stratégies,
+l'authentification, puis la phase de tests et de stabilisation.
+
+\subsection{Choix technologiques et justifications}
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{FastAPI} : framework Python moderne, performant et auto-documenté
+        (OpenAPI/Swagger), idéal pour exposer rapidement une API typée avec
+        validation des données (Pydantic).
+  \item \textbf{Pandas / NumPy} : manipulation vectorisée des séries temporelles
+        financières, calculs d'indicateurs et de rendements concis et efficaces.
+  \item \textbf{yfinance} : accès gratuit aux données de marché Yahoo Finance,
+        retenu pour passer du CSV statique à des données réelles sans coût d'API.
+  \item \textbf{Angular 21 (standalone)} : framework structurant, typé
+        (TypeScript), avec un système de \emph{signals} pour la réactivité et
+        Angular Material pour une UI cohérente.
+  \item \textbf{lightweight-charts} (TradingView) : librairie de graphiques
+        financiers performante (chandeliers, courbes) adaptée aux séries longues.
+  \item \textbf{SQLAlchemy 2.0 + PostgreSQL (Supabase)} : ORM moderne et base
+        managée pour persister les historiques ; SQLite en développement local.
+\end{itemize}
+
+\subsection{Problèmes rencontrés et solutions}
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Colonnes MultiIndex de yfinance} : pour un seul ticker,
+        \code{yfinance} renvoie des colonnes hiérarchiques. Solution : aplatissement
+        via \code{df.columns.get\_level\_values(0)} et renommage de l'index en
+        \code{Time}.
+  \item \textbf{Biais de look-ahead} : un backtest naïf utiliserait le signal du
+        jour~$t$ pour le rendement du jour~$t$, ce qui « triche ». Solution :
+        décalage du signal d'une barre (\code{signal.shift(1)}) dans le moteur, de
+        sorte que la position décidée en $t$ s'applique au rendement de $t{+}1$.
+  \item \textbf{CORS Front/Back} : l'application Angular (port 4200 / Vercel)
+        appelle l'API (port 8000 / Render) depuis une autre origine. Solution :
+        configuration du \code{CORSMiddleware} avec la liste blanche des origines.
+  \item \textbf{Authentification Google} : mise en place du flux OAuth/OIDC
+        (Authlib) avec redirection vers le frontend après connexion.
+  \item \textbf{Angular 21 « zoneless »} : la nouvelle version n'utilise plus
+        \code{zone.js}, ce qui a nécessité d'adapter la réactivité (signals,
+        \code{effect}) et la configuration des tests.
+  \item \textbf{Outillage de test} : le \emph{scaffolding} de tests frontend
+        n'était pas câblé. Solution : ajout d'un \code{tsconfig.spec.json} incluant
+        les \code{*.spec.ts} et des types \code{vitest/globals} (voir
+        section~\ref{sec:tests}).
+\end{itemize}
+
+% =====================================================================
+\section{Conception détaillée}
+% =====================================================================
+\subsection{Architecture générale}
+La plateforme repose sur une architecture client/serveur découplée, organisée en
+trois couches aux responsabilités distinctes :
+
+\begin{description}[leftmargin=1.4em,style=nextline]
+  \item[Couche présentation (client).] Une application monopage (SPA) Angular~21,
+        déployée sur Vercel. Elle gère l'affichage et les interactions : les pages
+        (connexion, tableau de bord, données, backtests, mode avancé, résultats,
+        paramètres), les services d'accès aux données et à l'authentification, et
+        les composants de graphiques financiers.
+  \item[Couche application (serveur).] Une API REST FastAPI, déployée sur Render.
+        Elle reçoit les requêtes du client, récupère les cours de marché, exécute
+        les stratégies et le moteur de backtest, calcule les métriques et gère
+        l'authentification.
+  \item[Couche persistance (données).] Une base de données relationnelle accédée
+        via l'ORM SQLAlchemy~2.0 : SQLite en développement local, PostgreSQL
+        (hébergé sur Supabase) en production.
+\end{description}
+
+\noindent Les couches communiquent par des contrats clairs. Le client appelle
+l'API en \textbf{HTTP/JSON} (style REST). Le serveur s'appuie sur deux services
+externes : \textbf{Yahoo Finance} (via la librairie \code{yfinance}) pour les
+cours, avec une \textbf{mise en cache} de 24~heures en base afin de limiter les
+appels réseau, et \textbf{Google} (OAuth\,2.0 / OIDC) pour l'authentification. La
+persistance des utilisateurs, des backtests et du cache passe par SQLAlchemy. La
+figure~\ref{fig:archi} en donne une vue d'ensemble, et la figure~\ref{fig:bdd}
+détaille le schéma de la base de données.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+  tier/.style={rectangle, rounded corners, draw=accent, line width=1pt,
+               fill=accent!5, align=left, inner sep=10pt, text width=128mm},
+  ext/.style={rectangle, rounded corners, draw=gray!70, fill=gray!10,
+              align=center, inner sep=8pt, text width=34mm, font=\small},
+  lbl/.style={font=\small\itshape, fill=white, inner sep=2pt},
+  flow/.style={-{Latex[length=3mm]}, line width=1.1pt, draw=gray!75},
+  bidir/.style={{Latex[length=3mm]}-{Latex[length=3mm]}, line width=1.1pt, draw=gray!75},
+]
+\node[tier](client){%
+  \textbf{Couche présentation --- Client (navigateur web)}\hfill\textit{déploiement : Vercel}\\[3pt]
+  Application monopage \textbf{Angular 21} (standalone, zoneless)\\
+  \textbf{Pages} : login, dashboard, data, backtests, advanced, results, settings\\
+  \textbf{Services} : AuthService, DataService, BacktestHistoryService\\
+  \textbf{Graphiques} : market-chart, equity-chart \textit{(lightweight-charts)}};
+
+\node[tier, below=24mm of client](api){%
+  \textbf{Couche application --- API REST}\hfill\textit{déploiement : Render}\\[3pt]
+  Serveur \textbf{FastAPI} (\texttt{main:app}, lancé par Uvicorn)\\
+  \textbf{Endpoints} : /api/data, /api/backtest, /api/backtest/upload, /api/history,\\
+  \hspace*{1.4em}/api/strategies, /api/auth/*\\
+  \textbf{Modules} : moteur \texttt{backtest.py}, \texttt{strategies/} (MACD, RSI, MA),\\
+  \hspace*{1.4em}\texttt{metrics.py} (Sharpe, Sortino, profit factor\dots), \texttt{validator.py},\\
+  \hspace*{1.4em}\texttt{cache.py} (cache 24\,h), \texttt{auth.py} (OAuth)};
+
+\node[tier, below=24mm of api](data){%
+  \textbf{Couche persistance --- Données}\\[3pt]
+  ORM \textbf{SQLAlchemy 2.0} $\rightarrow$ \textbf{SQLite} (dév.) / \textbf{PostgreSQL Supabase} (prod.)\\
+  \textbf{Tables} : users, backtests, saved\_strategies, watchlist, market\_data\_cache};
+
+\node[ext, left=14mm of api](yahoo){\textbf{Yahoo Finance}\\\textit{librairie yfinance}\\(cours OHLCV)};
+\node[ext, right=14mm of api](google){\textbf{Google}\\\textit{OAuth 2.0 / OIDC}\\(authentification)};
+
+\draw[flow] (client) -- node[lbl]{HTTP / JSON (REST)} (api);
+\draw[flow] (api) -- node[lbl]{SQLAlchemy ORM} (data);
+\draw[bidir] (api) -- node[lbl]{OHLCV} (yahoo);
+\draw[bidir] (api) -- node[lbl]{OAuth} (google);
+\end{tikzpicture}}
+\caption{Architecture globale de la plateforme : trois couches découplées
+(présentation Angular, application FastAPI, persistance SQLAlchemy) et deux
+services externes (Yahoo Finance pour les cours, Google pour l'authentification).}
+\label{fig:archi}
+\end{figure}
+
+\subsection{Backend : structure et API}
+Le backend est organisé en modules à responsabilité unique :
+\begin{center}
+\begin{tabular}{@{}l p{10.8cm}@{}}
+\toprule
+\textbf{Fichier} & \textbf{Rôle} \\
+\midrule
+\code{main.py}        & Point d'entrée, middlewares, endpoints backtest/historique/stratégies/upload \\
+\code{data.py}        & Routeur \code{/api/data} : récupération OHLCV pour les graphiques \\
+\code{backtest.py}    & Moteur de backtest vectorisé (rendements, métriques) \\
+\code{strategies/}    & Stratégies (MACD, RSI, MA crossover) + registre \\
+\code{metrics.py}     & Métriques du \emph{mode avancé} (Sortino, profit factor, espérance\dots) sur trades importés \\
+\code{validator.py}   & Validation des backtests importés (mode avancé) \\
+\code{cache.py}       & Cache des cours de marché en base (TTL 24\,h) \\
+\code{models.py}      & Modèles ORM (User, Backtest, SavedStrategy, Watchlist, MarketDataCache) \\
+\code{database.py}    & Configuration SQLAlchemy (engine, session, \code{get\_db}) \\
+\code{auth.py}        & Routeur \code{/api/auth} : Google OAuth, gestion de compte \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Endpoints de l'API.}
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Méthode} & \textbf{Route} & \textbf{Description} \\
+\midrule
+GET    & \code{/api/data/\{ticker\}?period=} & Données OHLCV (yfinance) \\
+POST   & \code{/api/backtest}               & Lance un backtest \\
+POST   & \code{/api/backtest/upload}        & Backtest en mode avancé (import de trades JSON) \\
+GET    & \code{/api/history/\{user\_id\}}     & Historique d'un utilisateur \\
+DELETE & \code{/api/history/\{id\}}           & Supprime un backtest \\
+GET    & \code{/api/strategies}             & Liste des stratégies \\
+GET    & \code{/api/auth/login}             & Redirection vers Google \\
+GET    & \code{/api/auth/callback}          & Retour OAuth, création/MAJ utilisateur \\
+PATCH  & \code{/api/auth/users/\{id\}}        & Renommage d'utilisateur \\
+DELETE & \code{/api/auth/users/\{id\}}        & Suppression de compte \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Modèle de données.}
+La base comporte cinq tables (figure~\ref{fig:bdd}). La table \code{users} et la
+table \code{backtests} constituent le c\oe{}ur persistant : un enregistrement de
+backtest référence son utilisateur (clé étrangère \code{user\_id}) et stocke le
+contexte (ticker, stratégie, période, paramètres, capital, stop-loss) ainsi que
+les métriques calculées (rendement stratégie/marché, Sharpe, drawdown, nombre de
+transactions, taux de réussite). La table \code{market\_data\_cache} met en cache
+les cours récupérés auprès de Yahoo Finance, avec une contrainte d'unicité sur le
+couple \code{(ticker, period)} et une durée de vie de 24~heures. Deux tables
+(\code{saved\_strategies}, \code{watchlist}) sont préparées pour des évolutions.
+
+\begin{figure}[H]
+\centering
+\resizebox{0.96\textwidth}{!}{%
+\begin{tikzpicture}[
+  entity/.style={rectangle, draw=accent, line width=0.8pt, inner sep=0pt, font=\small},
+  rel/.style={line width=1pt, draw=accent!70},
+  card/.style={font=\scriptsize\bfseries, fill=white, inner sep=1.5pt},
+  verb/.style={font=\small\itshape, fill=white, inner sep=2pt},
+]
+% --- Entité parente ---
+\node[entity](users){\begin{tabular}{@{\,}l@{\,}}
+  \textbf{users}\\\hline
+  \underline{id} : int (PK)\\ username : str (UNIQUE, NN)\\ email : str (UNIQUE, NN)\\
+  password\_hash : str (NN)\\ created\_at : datetime\\
+\end{tabular}};
+
+% --- Entités filles : référencent users via user\_id ---
+\node[entity, right=54mm of users, yshift=40mm](bt){\begin{tabular}{@{\,}l@{\,}}
+  \textbf{backtests}\\\hline
+  \underline{id} : int (PK)\\ \textit{user\_id} : int (FK)\\
+  ticker, strategy, period : str\\ params : JSON\\
+  capital\_initial, stop\_loss : float\\ total\_return\_strat / \_market : float\\
+  sharpe\_ratio, max\_drawdown : float\\ n\_trades : int, win\_rate : float\\
+  created\_at : datetime\\
+\end{tabular}};
+
+\node[entity, right=54mm of users](ss){\begin{tabular}{@{\,}l@{\,}}
+  \textbf{saved\_strategies}\\\hline
+  \underline{id} : int (PK)\\ \textit{user\_id} : int (FK)\\
+  name, strategy : str\\ params : JSON\\ created\_at : datetime\\
+\end{tabular}};
+
+\node[entity, right=54mm of users, yshift=-46mm](wl){\begin{tabular}{@{\,}l@{\,}}
+  \textbf{watchlist}\\\hline
+  \underline{id} : int (PK)\\ \textit{user\_id} : int (FK)\\
+  ticker : str\\ added\_at : datetime\\
+\end{tabular}};
+
+% --- Entité autonome (aucune relation) ---
+\node[entity, below=18mm of users](cache){\begin{tabular}{@{\,}l@{\,}}
+  \textbf{market\_data\_cache}\\\hline
+  \underline{id} : int (PK)\\ ticker : str, period : str\\
+  \textit{(UNIQUE ticker, period)}\\ data : JSON\\ fetched\_at : datetime\\
+  \textit{(table autonome, aucune FK)}\\
+\end{tabular}};
+
+% --- Relations 1:N : un user possède 0..N lignes ; chaque ligne -> 1 user ---
+\draw[rel] (users.east) to[out=35,in=180] (bt.west)
+  node[card, pos=0.12]{1} node[verb, pos=0.56]{exécute} node[card, pos=0.93]{0..N};
+\draw[rel] (users.east) to[out=0,in=180] (ss.west)
+  node[card, pos=0.12]{1} node[verb, pos=0.50]{enregistre} node[card, pos=0.90]{0..N};
+\draw[rel] (users.east) to[out=-35,in=180] (wl.west)
+  node[card, pos=0.12]{1} node[verb, pos=0.56]{suit} node[card, pos=0.93]{0..N};
+\end{tikzpicture}}
+\caption{Schéma relationnel de la base de données (cardinalités 1:N). Un
+\texttt{users} possède 0..N lignes dans \texttt{backtests}, \texttt{saved\_strategies}
+et \texttt{watchlist} via la clé étrangère \texttt{user\_id} ; réciproquement, chaque
+ligne appartient à exactement un utilisateur. \texttt{market\_data\_cache} est
+autonome (cache des cours, contrainte d'unicité sur \texttt{(ticker, period)}).
+\textit{PK : clé primaire \textbullet{} FK : clé étrangère \textbullet{} NN : non nul.}}
+\label{fig:bdd}
+\end{figure}
+
+\paragraph{Moteur de backtest.}
+Le moteur (\code{backtest.py}) est entièrement vectorisé. À partir d'un
+DataFrame contenant la colonne de signaux, il calcule :
+\begin{lstlisting}[style=py]
+market_return = Close.pct_change()
+strat_return  = market_return * signal.shift(1)   # decalage = anti look-ahead
+cumulative    = (1 + return).cumprod() - 1
+\end{lstlisting}
+Les métriques produites par le moteur standard sont : rendement cumulé stratégie
+et marché, ratio de Sharpe annualisé ($\sqrt{252}$), \emph{maximum drawdown},
+nombre de transactions (changements de signal) et taux de réussite (proportion de
+barres en position gagnantes). Le \emph{mode avancé} (import de trades, calculé
+par le module \code{metrics.py}) produit en complément des métriques
+supplémentaires : ratio de \textbf{Sortino}, \textbf{profit factor}, espérance par
+trade, volatilité annualisée, etc.
+
+\paragraph{Stratégies.}
+Toutes les stratégies héritent d'une interface commune \code{BaseStrategy} et
+implémentent \code{compute\_signals(df) -> df}, qui ajoute une colonne
+\code{signal} ($+1$ long, $-1$ court, $0$ neutre) et des colonnes d'indicateurs.
+Un registre (\code{STRATEGIES\_REGISTRY}) associe une clé textuelle à chaque
+classe, consommée par la route \code{/api/backtest}.
+\begin{center}
+\begin{tabular}{@{}ll p{6.6cm}@{}}
+\toprule
+\textbf{Stratégie} & \textbf{Paramètres} & \textbf{Logique de signal} \\
+\midrule
+MACD          & fast=12, slow=26, signal=9 & $+1$ si MACD\_line $>$ signal, sinon $-1$ \\
+RSI           & length=14, ob=70, os=30    & $+1$ si RSI $<$ os, $-1$ si RSI $>$ ob, sinon $0$ \\
+MA crossover  & fast=10, slow=30           & $+1$ si MA\_fast $>$ MA\_slow, sinon $-1$ \\
+Bollinger     & length=20, num\_std=2      & $+1$ sous la bande basse, $-1$ au-dessus de la bande haute, sinon $0$ \\
+Momentum      & length=10                  & $+1$ si variation sur $N$ barres $>0$, $-1$ si $<0$ \\
+Donchian      & length=20                  & $+1$/$-1$ à la cassure du plus haut/bas des $N$ barres précédentes \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Frontend : structure et logique}
+L'application Angular est \emph{standalone} (sans NgModule). Le composant racine
+affiche une barre de navigation (\code{navbar}) qui héberge le
+\code{<router-outlet>}. Les pages sont chargées paresseusement (lazy loading) et
+protégées par un garde de route.
+
+\paragraph{Routage.} \code{login} et \code{callback} sont publiques ; les pages
+\code{dashboard}, \code{data}, \code{backtests}, \code{results}, \code{settings}
+sont protégées par \code{authGuard}.
+
+\paragraph{Services.}
+\begin{itemize}[leftmargin=1.4em]
+  \item \code{DataService} --- tous les appels REST (données, backtest, historique,
+        compte) ; l'URL de base provient de \code{environment.apiUrl}.
+  \item \code{AuthService} --- identité stockée en \code{localStorage}, mode démo,
+        état d'authentification.
+  \item \code{BacktestHistoryService} --- historique local (mode démo), tampon
+        circulaire des 5 derniers résultats.
+\end{itemize}
+
+\paragraph{Composants graphiques.} \code{market-chart} affiche les cours
+(chandeliers ou ligne selon la période) et \code{equity-chart} la courbe
+d'équité (stratégie vs marché, rebasée en base~100), via \code{lightweight-charts}.
+
+\subsection{Flux de bout en bout d'un backtest}
+\begin{enumerate}[leftmargin=1.6em]
+  \item L'utilisateur choisit ticker, période, stratégie et paramètres sur la page
+        \code{Backtests} et clique sur « Lancer ».
+  \item \code{DataService.runBacktest()} envoie un \code{POST /api/backtest}.
+  \item L'API valide la stratégie, récupère les données, instancie la stratégie,
+        calcule les signaux puis exécute le moteur de backtest.
+  \item La réponse (\code{stats}, \code{equity\_curve}, \code{signals}) est
+        renvoyée ; si l'utilisateur est connecté, le résultat est persisté.
+  \item Le frontend ajoute le résultat à l'historique local et navigue vers la page
+        \code{Results} qui affiche métriques, courbe d'équité et tableau de signaux.
+\end{enumerate}
+
+% =====================================================================
+\section{Réalisation : fonctionnalités livrées}
+% =====================================================================
+\begin{itemize}[leftmargin=1.4em]
+  \item Récupération de données de marché temps réel (S\&P~500, NASDAQ, NQ) sur
+        plusieurs périodes (1J, 1M, 1A, 5A) et visualisation graphique.
+  \item Lancement de backtests sur six stratégies paramétrables (MACD, RSI, MA
+        crossover, Bollinger, Momentum, Donchian) avec calcul de métriques.
+  \item Page de résultats : métriques, courbe d'équité interactive, tableau des
+        signaux, navigation dans l'historique récent.
+  \item Tableau de bord synthétique (nombre de backtests, meilleur rendement,
+        runs récents).
+  \item Authentification Google OAuth + mode démo ; persistance de l'historique en
+        base pour les utilisateurs connectés.
+  \item Page de paramètres (nom d'utilisateur, préférences d'interface, suppression
+        de compte).
+\end{itemize}
+
+\medskip
+\noindent Les captures ci-dessous illustrent les principales interfaces livrées.
+
+\figph{screenshot-dashboard.png}{0.85\linewidth}{6cm}{Tableau de bord : synthèse des backtests et meilleur rendement.}
+
+\figph{screenshot-backtests.png}{0.85\linewidth}{6cm}{Page Backtests : sélection de l'indice, de la période, de la stratégie et de ses paramètres.}
+
+\figph{screenshot-results.png}{0.85\linewidth}{6cm}{Page Résultats : métriques, courbe d'équité (stratégie vs marché) et tableau des signaux.}
+
+\figph{screenshot-data.png}{0.85\linewidth}{6cm}{Page Données de marché : graphique des cours (chandeliers / ligne) via lightweight-charts.}
+
+% =====================================================================
+\section{Tests et validation}
+\label{sec:tests}
+% =====================================================================
+Nous avons écrit deux types de tests automatisés, classiques en développement
+logiciel :
+\begin{itemize}[leftmargin=1.4em,nosep]
+  \item des \textbf{tests unitaires}, qui vérifient une fonction à la fois (par
+        exemple : une stratégie produit bien un signal cohérent, ou un calcul de
+        rendement donne le bon résultat) ;
+  \item des \textbf{tests d'intégration}, qui vérifient que l'API répond
+        correctement de bout en bout (lancer un backtest, lire ou supprimer un
+        historique, et renvoyer une erreur quand la requête est invalide).
+\end{itemize}
+Ils sont écrits avec \textbf{pytest} côté backend (Python) et avec \textbf{Vitest}
+côté frontend (Angular). Nous avons complété par quelques essais manuels, en
+utilisant l'application comme un utilisateur (connexion, lancement d'un backtest,
+lecture des résultats).
+
+\subsection{Résultat}
+\textbf{L'ensemble des tests passe} : 99 tests automatisés sont au vert.
+\begin{center}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Périmètre} & \textbf{Nombre de tests} & \textbf{Résultat} \\
+\midrule
+Backend (pytest)  & 58 & tous au vert \\
+Frontend (Vitest) & 41 & tous au vert \\
+\textbf{Total}    & \textbf{99} & \textbf{100\% au vert} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\section{Bilan : objectif vs réalisation}
+\label{sec:bilan}
+% =====================================================================
+\subsection{Comparaison au périmètre MVP}
+\begin{center}
+\begin{tabular}{@{}p{7.6cm}cc@{}}
+\toprule
+\textbf{Objectif} & \textbf{Prévu (MVP)} & \textbf{Réalisé} \\
+\midrule
+Chargement de données financières                 & Oui (CSV) & Oui (\textbf{temps réel}) \\
+Stratégies d'analyse technique                    & Oui & Oui (MACD, RSI, MA) \\
+Simulation des ordres / signaux                   & Oui & Oui \\
+Rendement cumulatif                               & Oui & Oui \\
+Interface web + graphique + performance           & Oui & Oui (multi-pages) \\
+API publique temps réel (yfinance)                & Après-MVP & \textbf{Réalisé} \\
+Base de données / historique utilisateur          & Après-MVP & \textbf{Réalisé} \\
+Métriques de risque avancées (Sharpe, drawdown)   & Après-MVP & \textbf{Réalisé} \\
+Authentification (Google OAuth)                    & Non prévu & \textbf{Réalisé} \\
+\bottomrule
+\end{tabular}
+\end{center}
+Le projet a donc non seulement atteint les objectifs du MVP, mais a aussi livré
+l'essentiel des fonctionnalités « après-MVP » envisagées, ce qui constitue un
+résultat très satisfaisant au regard du périmètre initial.
+
+\subsection{Limitations connues et dette technique}
+Par souci de transparence, nous recensons les limites identifiées, pistes
+d'amélioration pour la suite :
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Sécurité / autorisation} : les routes d'historique et de gestion de
+        compte ne vérifient pas encore la propriété des ressources côté serveur
+        (l'identité est gérée principalement côté client). Un contrôle
+        d'autorisation serveur (vérification de session/jeton) est à renforcer.
+  \item \textbf{Paramètres financiers} : le capital initial et le \emph{stop-loss}
+        sont saisis et stockés mais pas encore intégrés au calcul ; les frais de
+        transaction et le \emph{slippage} ne sont pas modélisés.
+  \item \textbf{Indicateurs} : le RSI utilise une moyenne exponentielle (approche
+        simplifiée vs. RSI de Wilder) ; MACD et MA sont toujours « en position ».
+  \item \textbf{Robustesse} : peu de gestion d'erreurs autour des appels réseau
+        (yfinance) et de l'écriture en base.
+\end{itemize}
+
+\subsection{Perspectives}
+Renforcement de l'autorisation serveur, prise en compte du stop-loss et des frais
+dans le moteur, ajout de stratégies et de métriques, sauvegarde de stratégies et
+listes de suivi (tables déjà modélisées), et amélioration de la robustesse réseau.
+
+% =====================================================================
+\section{Manuel utilisateur}
+% =====================================================================
+\subsection{Prérequis}
+Python~3.11+, Node.js~20+ et npm~10+.
+
+\subsection{Installation et lancement}
+\paragraph{Backend.}
+\begin{lstlisting}[style=sh]
+cd backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1     # Windows (PowerShell)
+# source .venv/bin/activate      # Linux / macOS
+pip install -r requirements.txt
+uvicorn main:app --reload --host 127.0.0.1 --port 8000
+\end{lstlisting}
+API disponible sur \url{http://127.0.0.1:8000}, documentation interactive sur
+\url{http://127.0.0.1:8000/docs}.
+
+\paragraph{Frontend.}
+\begin{lstlisting}[style=sh]
+cd frontend
+npm install
+npm start
+\end{lstlisting}
+Application disponible sur \url{http://localhost:4200}.
+
+\subsection{Utilisation pas à pas}
+\figph{screenshot-login.png}{0.6\linewidth}{5.5cm}{Page de connexion : authentification Google ou accès en mode démo.}
+\begin{enumerate}[leftmargin=1.6em]
+  \item \textbf{Connexion} : sur la page de connexion, se connecter avec Google ou
+        cliquer sur « Mode démo » pour utiliser l'application sans compte.
+  \item \textbf{Données de marché} (page \emph{Data}) : choisir un indice et une
+        période pour afficher le graphique des cours.
+  \item \textbf{Backtest} (page \emph{Backtests}) : sélectionner indice, période,
+        stratégie et ajuster les paramètres, puis cliquer sur « Lancer ».
+  \item \textbf{Résultats} (page \emph{Results}) : consulter les métriques
+        (rendement, Sharpe, drawdown, trades, taux de réussite), la courbe d'équité
+        et le tableau des signaux ; naviguer dans l'historique récent.
+  \item \textbf{Tableau de bord} (page \emph{Dashboard}) : vue synthétique des
+        backtests et du meilleur rendement.
+  \item \textbf{Paramètres} (page \emph{Settings}) : modifier le nom d'utilisateur,
+        ajuster les préférences d'interface, supprimer le compte.
+\end{enumerate}
+
+\subsection{Exécution des tests (développeurs)}
+\begin{lstlisting}[style=sh]
+# Backend
+cd backend
+pip install -r requirements-dev.txt
+pytest                          # 58 tests
+
+# Frontend
+cd frontend
+npm install
+npm test                        # ou : ng test --no-watch  (41 tests)
+\end{lstlisting}
+
+% =====================================================================
+\section{Conclusion}
+% =====================================================================
+Ce projet nous a permis de concevoir et de livrer une plateforme web de
+backtesting fonctionnelle, dépassant les objectifs du MVP grâce à l'intégration de
+données temps réel, d'une base de données, de métriques avancées et d'une
+authentification. La démarche Agile, le découpage en pôles et l'outillage
+collaboratif ont structuré un développement incrémental. La campagne de tests
+(99~tests automatisés, tous au vert) garantit la fiabilité du c\oe{}ur
+métier et facilite la maintenance future. Les limitations identifiées constituent
+une feuille de route claire pour la poursuite du projet.
+
+% =====================================================================
+\section{Références}
+% =====================================================================
+\begin{itemize}[leftmargin=1.4em]
+  \item Angular --- \url{https://angular.dev}
+  \item Angular Material --- \url{https://material.angular.io}
+  \item lightweight-charts (TradingView) --- \url{https://tradingview.github.io/lightweight-charts/}
+  \item FastAPI --- \url{https://fastapi.tiangolo.com/}
+  \item Pydantic --- \url{https://docs.pydantic.dev/}
+  \item Pandas --- \url{https://pandas.pydata.org/docs/}
+  \item yfinance --- \url{https://github.com/ranaroussi/yfinance}
+  \item SQLAlchemy --- \url{https://docs.sqlalchemy.org/}
+  \item Authlib --- \url{https://docs.authlib.org/}
+  \item pytest --- \url{https://docs.pytest.org/}
+  \item Vitest --- \url{https://vitest.dev/}
+  \item Investopedia --- Backtesting --- \url{https://www.investopedia.com/terms/b/backtesting.asp}
+  \item Formation Git : D. Ranc, « Introduction à GIT pour TSP1A », PRO3600.
+  \item Méthode Agile : H. Charbonnier, PRO3100 « GATE ».
+\end{itemize}
+
+% =====================================================================
+\section{Lexique}
+% =====================================================================
+\begin{description}[leftmargin=1.2em,style=nextline]
+  \item[API] Interface de programmation permettant au frontend de communiquer avec
+        le backend (échanges en JSON).
+  \item[Backtesting] Simulation d'une stratégie d'investissement sur des données
+        historiques pour en évaluer la viabilité.
+  \item[OHLCV] Format standard de données financières : Open, High, Low, Close,
+        Volume.
+  \item[Drawdown (max)] Pire perte depuis un sommet de la courbe d'équité.
+  \item[Ratio de Sharpe] Rendement ajusté du risque (rendement moyen rapporté à la
+        volatilité), ici annualisé.
+  \item[MACD] \emph{Moving Average Convergence Divergence} : indicateur fondé sur la
+        différence de deux moyennes exponentielles.
+  \item[RSI] \emph{Relative Strength Index} : oscillateur de momentum borné entre 0
+        et 100.
+  \item[MA Crossover] Stratégie de croisement de moyennes mobiles (rapide/lente).
+  \item[Signal] Position décidée par la stratégie : $+1$ (long), $-1$ (court),
+        $0$ (neutre).
+  \item[Courbe d'équité] Évolution de la valeur cumulée d'un portefeuille au cours
+        du temps.
+  \item[Look-ahead bias] Biais consistant à utiliser une information future ;
+        évité ici par le décalage du signal.
+  \item[OAuth] Protocole d'autorisation déléguée (ici via Google).
+  \item[ORM] \emph{Object-Relational Mapping} : correspondance objets/tables
+        (SQLAlchemy).
+  \item[SPA] \emph{Single Page Application} : application web ne rechargeant qu'une
+        seule page.
+  \item[MVP] \emph{Produit Minimum Viable} : version minimale validant le concept.
+  \item[Sprint] Cycle de développement court et itératif (méthode Agile).
+\end{description}
+
+\end{document}
