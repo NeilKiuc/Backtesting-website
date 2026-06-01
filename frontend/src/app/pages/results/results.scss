@@ -125,7 +125,9 @@
       font-weight: 600;
     }
 
-    tr:hover td { background: #2a2a2a; }
+    /* Surlignage translucide : lisible que le texte soit clair ou foncé
+       (évite le « noir sur noir » quand le texte des cellules est sombre). */
+    tr:hover td { background: rgba(79, 195, 247, 0.18); }
   }
 }
 

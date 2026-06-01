@@ -26,9 +26,41 @@
       <mat-option value="macd">MACD</mat-option>
       <mat-option value="rsi">RSI</mat-option>
       <mat-option value="ma_crossover">MA Crossover</mat-option>
+      <mat-option value="bollinger">Bandes de Bollinger</mat-option>
+      <mat-option value="momentum">Momentum</mat-option>
+      <mat-option value="donchian">Donchian Breakout</mat-option>
     </mat-select>
   </mat-form-field>
+
+  <button mat-icon-button type="button"
+          [color]="showInfo() ? 'primary' : ''"
+          (click)="toggleInfo()"
+          matTooltip="Expliquer cette stratégie"
+          aria-label="Expliquer la stratégie">
+    <mat-icon>info</mat-icon>
+  </button>
 </div>
+
+<!-- ── Explication de la stratégie (icône i) ───────────────────────────── -->
+@if (showInfo()) {
+  <mat-card class="strategy-info" style="max-width:720px;margin:0 0 18px;border-left:4px solid #4fc3f7;">
+    <mat-card-content>
+      <h3 style="margin:0 0 4px;">{{ currentInfo().titre }}
+        <span style="font-size:.8em;opacity:.7;">— {{ currentInfo().famille }}</span>
+      </h3>
+      <p style="margin:.4em 0;">{{ currentInfo().idee }}</p>
+      <p style="margin:.4em 0;"><strong>Indicateur :</strong>
+        <code>{{ currentInfo().formule }}</code></p>
+      <p style="margin:.4em 0;"><strong>Règle :</strong> {{ currentInfo().regle }}</p>
+      <p style="margin:.4em 0 .2em;"><strong>Paramètres :</strong></p>
+      <ul style="margin:0;padding-left:1.3em;">
+        @for (p of currentInfo().params; track p.nom) {
+          <li style="margin:.15em 0;"><code>{{ p.nom }}</code> : {{ p.desc }}</li>
+        }
+      </ul>
+    </mat-card-content>
+  </mat-card>
+}
 
 <!-- ── Paramètres dynamiques ──────────────────────────────────────────── -->
 <div class="form-row params-row">

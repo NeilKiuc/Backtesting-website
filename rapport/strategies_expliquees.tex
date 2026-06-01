@@ -1,0 +1,182 @@
+% =====================================================================
+%  Note explicative : les 3 nouvelles stratégies de trading
+%  Compilation : pdflatex strategies_expliquees.tex   (ou Overleaf, ou Tectonic)
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{accent}{RGB}{30,90,150}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{\vspace{-1.5cm}\textbf{Trois nouvelles stratégies de trading}\\[2pt]
+\large Note explicative --- plateforme de backtesting PRO3600}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+\vspace{-1cm}
+
+\section*{Avant de commencer : comment lire une stratégie}
+Dans notre plateforme, une stratégie ne fait qu'une seule chose : pour chaque
+barre de cours, elle décide une \textbf{position} via une colonne \code{signal} :
+\begin{itemize}[leftmargin=1.5em,nosep]
+  \item \textbf{+1} = position \emph{longue} (on parie que ça monte) ;
+  \item \textbf{-1} = position \emph{courte} (on parie que ça baisse) ;
+  \item \textbf{0} = neutre (hors marché).
+\end{itemize}
+Le moteur de backtest applique ensuite ce signal \textbf{décalé d'une barre}
+(\code{signal.shift(1)}) au rendement du jour suivant : la décision prise en
+clôture du jour~$t$ s'applique au rendement de $t{+}1$. Cela évite la
+« triche » (utiliser une information qu'on ne connaît pas encore).
+
+\medskip
+On distingue deux familles : les stratégies de \textbf{suivi de tendance} (on
+suit le mouvement) et les stratégies de \textbf{retour à la moyenne} (on parie
+qu'un excès va se corriger). Voici les trois que nous avons ajoutées.
+
+% ---------------------------------------------------------------------
+\section{Bandes de Bollinger \textnormal{(\code{bollinger})} --- retour à la moyenne}
+
+\paragraph{L'idée.} Un cours s'éloigne rarement très longtemps de sa moyenne. On
+trace donc une moyenne mobile entourée de deux « bandes » à une certaine distance
+(en écarts-types). Quand le cours touche la bande basse, il est jugé
+anormalement bas (\emph{survente}) et on anticipe un rebond ; quand il touche la
+bande haute, il est jugé trop haut (\emph{surachat}).
+
+\paragraph{L'indicateur.} Sur une fenêtre de $n$ barres :
+\[
+  \text{Milieu} = \text{SMA}_n(C), \qquad
+  \text{Bande haute/basse} = \text{SMA}_n(C) \pm k \,\sigma_n(C),
+\]
+où $C$ est le cours de clôture, $\text{SMA}_n$ la moyenne mobile simple,
+$\sigma_n$ l'écart-type mobile et $k$ le nombre d'écarts-types.
+
+\paragraph{La règle de signal.}
+\[
+  \text{signal} =
+  \begin{cases}
+    +1 & \text{si } C < \text{bande basse} \quad(\text{survente, on achète})\\
+    -1 & \text{si } C > \text{bande haute} \quad(\text{surachat, on vend})\\
+    0  & \text{sinon}
+  \end{cases}
+\]
+
+\paragraph{Paramètres.} \code{length} = 20 (fenêtre), \code{num\_std} = 2
+(largeur des bandes). Des bandes plus larges (\code{num\_std} élevé) donnent
+moins de signaux mais plus fiables.
+
+\paragraph{Forces et limites.} Excellente sur un marché qui oscille sans
+direction (\emph{range}). En revanche, dans une forte tendance, le cours peut
+« coller » à une bande longtemps : la stratégie vend trop tôt (ou achète à
+contre-tendance). C'est le revers classique du retour à la moyenne.
+
+% ---------------------------------------------------------------------
+\section{Momentum \textnormal{(\code{momentum})} --- suivi de tendance}
+
+\paragraph{L'idée.} « La tendance est ton amie. » On suppose qu'un actif qui a
+monté ces derniers temps va continuer à monter (et inversement). On mesure donc
+simplement la \emph{vitesse} récente du cours.
+
+\paragraph{L'indicateur.} Le \emph{Rate of Change} (ROC) sur $n$ barres :
+\[
+  \text{ROC}_n = \frac{C_t - C_{t-n}}{C_{t-n}} \times 100 .
+\]
+C'est la variation en pourcentage du cours sur les $n$ dernières barres.
+
+\paragraph{La règle de signal.}
+\[
+  \text{signal} =
+  \begin{cases}
+    +1 & \text{si } \text{ROC}_n > 0 \quad(\text{ça monte, on suit})\\
+    -1 & \text{si } \text{ROC}_n < 0 \quad(\text{ça baisse, on suit})\\
+    0  & \text{si } \text{ROC}_n = 0
+  \end{cases}
+\]
+
+\paragraph{Paramètres.} \code{length} = 10 (horizon de mesure). Une fenêtre
+courte réagit vite mais génère beaucoup de faux signaux ; une fenêtre longue est
+plus stable mais plus lente.
+
+\paragraph{Forces et limites.} Très simple et efficace sur les marchés qui
+tendent nettement. Sa faiblesse : les marchés sans direction, où elle
+multiplie les allers-retours perdants (on parle de \emph{whipsaw}).
+
+% ---------------------------------------------------------------------
+\section{Donchian Breakout \textnormal{(\code{donchian})} --- cassure de canal}
+
+\paragraph{L'idée.} On surveille le plus haut et le plus bas récents. Si le
+cours \emph{casse} au-dessus du plus haut des $n$ dernières barres, c'est le
+signe d'un nouveau mouvement haussier, et on entre en position (symétrique à la
+baisse). C'est la stratégie historique des « Turtle Traders ».
+
+\paragraph{L'indicateur.} Le canal de Donchian, calculé sur les $n$ barres
+\emph{précédentes} (d'où le décalage d'une barre, pour ne pas inclure la barre
+courante) :
+\[
+  \text{Haut}_t = \max\bigl(H_{t-n},\dots,H_{t-1}\bigr), \qquad
+  \text{Bas}_t = \min\bigl(L_{t-n},\dots,L_{t-1}\bigr),
+\]
+où $H$ et $L$ sont les plus hauts et plus bas de chaque barre.
+
+\paragraph{La règle de signal.}
+\[
+  \text{signal} =
+  \begin{cases}
+    +1 & \text{si } C_t > \text{Haut}_t \quad(\text{cassure haussière})\\
+    -1 & \text{si } C_t < \text{Bas}_t \quad(\text{cassure baissière})
+  \end{cases}
+\]
+Entre deux cassures, la position est \textbf{conservée} (on reste investi dans
+le sens de la dernière cassure) jusqu'à la cassure opposée.
+
+\paragraph{Paramètres.} \code{length} = 20 (taille du canal). Un canal large
+ne réagit qu'aux mouvements majeurs ; un canal étroit capte des mouvements plus
+petits mais plus bruités.
+
+\paragraph{Forces et limites.} Capture bien les grandes tendances et les
+ruptures de marché. Comme tout système de cassure, elle souffre des « fausses
+cassures » et entre souvent un peu après le début réel du mouvement.
+
+% ---------------------------------------------------------------------
+\section{Récapitulatif}
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Stratégie} & \textbf{Famille} & \textbf{Indicateur} & \textbf{Paramètres} \\
+\midrule
+Bandes de Bollinger & Retour à la moyenne & SMA $\pm$ $k\sigma$        & length=20, num\_std=2 \\
+Momentum            & Suivi de tendance   & ROC (variation \%)         & length=10 \\
+Donchian Breakout   & Cassure / tendance  & Plus haut / plus bas sur $n$ & length=20 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Intégration technique.} Chaque stratégie est une classe héritant de
+\code{BaseStrategy} (fichiers \code{backend/strategies/bollinger.py},
+\code{momentum.py}, \code{donchian.py}), enregistrée dans
+\code{STRATEGIES\_REGISTRY} sous sa clé (\code{bollinger}, \code{momentum},
+\code{donchian}). Elles apparaissent automatiquement dans l'API
+(\code{GET /api/strategies}) et dans le menu déroulant de la page \emph{Backtests}
+du site, avec leurs paramètres par défaut. Elles sont couvertes par la suite de
+tests \code{pytest} (domaine du signal, colonnes produites, validation des
+paramètres).
+
+\paragraph{Comment les essayer.} Sur la page \emph{Backtests}, choisir la
+stratégie dans la liste, ajuster les paramètres si besoin, puis lancer le
+backtest : les métriques et la courbe d'équité s'affichent comme pour les
+stratégies existantes.
+
+\end{document}
