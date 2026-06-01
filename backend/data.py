@@ -13,8 +13,8 @@ TICKER_MAP = {
 }
 
 PERIOD_CONFIG = {
-    "1D": {"period": "1d",  "interval": "5m"},
-    "1M": {"period": "1mo", "interval": "1d"},
+    "1D": {"period": "2d",  "interval": "5m"},
+    "1M": {"period": "1mo", "interval": "1h"},
     "1Y": {"period": "1y",  "interval": "1d"},
     "5Y": {"period": "5y",  "interval": "1wk"},
 }
@@ -39,7 +39,9 @@ def get_market_data(ticker: str, period: str = "1Y", db: Session = Depends(get_d
     df.index.name = "Time"
     df = df.sort_index().reset_index()
 
-    if config["interval"] == "5m":
+    # Intraday (minutes/heures) : on conserve l'heure ; sinon (jour/semaine) date seule.
+    intraday = config["interval"].endswith("m") or config["interval"].endswith("h")
+    if intraday:
         df["Time"] = df["Time"].dt.strftime("%Y-%m-%d %H:%M")
     else:
         df["Time"] = df["Time"].dt.strftime("%Y-%m-%d")
