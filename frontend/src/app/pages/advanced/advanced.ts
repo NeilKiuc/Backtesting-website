@@ -31,6 +31,11 @@ export class Advanced {
   isLoading    = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
   isDragOver   = signal<boolean>(false);
+  showGuide    = signal<boolean>(false);
+
+  toggleGuide() {
+    this.showGuide.update(v => !v);
+  }
 
   setMode(mode: 'file' | 'paste') {
     this.inputMode.set(mode);

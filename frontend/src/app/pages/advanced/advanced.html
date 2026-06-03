@@ -2,6 +2,99 @@
   <h1>Mode Avancé</h1>
   <p class="subtitle">Importez vos résultats de backtest au format JSON pour les analyser.</p>
 
+  <!-- Guide step-by-step -->
+  <button class="guide-toggle" (click)="toggleGuide()">
+    <mat-icon>{{ showGuide() ? 'expand_less' : 'help_outline' }}</mat-icon>
+    {{ showGuide() ? 'Masquer le guide' : 'Comment ça marche ?' }}
+  </button>
+
+  @if (showGuide()) {
+    <div class="guide-panel">
+      <div class="guide-step">
+        <span class="step-number">1</span>
+        <div class="step-content">
+          <h3>Installer l'outil d'export</h3>
+          <p>Ouvrez un terminal et lancez :</p>
+          <pre class="code-block">pip install -e backtest-export/</pre>
+          <p class="hint">Nécessite Python 3.10+. Vérifiez avec <code>python --version</code>.</p>
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <span class="step-number">2</span>
+        <div class="step-content">
+          <h3>Créer votre fichier JSON</h3>
+          <p>Créez un fichier Python et ajoutez vos trades :</p>
+          <pre class="code-block">from backtest_export import Backtest
+
+bt = Backtest(ticker="AAPL", period="1Y", capital=10000)
+
+bt.add_trade(
+    entry_time="2025-01-15",
+    exit_time="2025-01-22",
+    direction="long",
+    entry_price=150.25,
+    exit_price=158.40,
+    fees=2.50
+)
+
+bt.export("mon_backtest.json")</pre>
+          <p class="hint">Le P&amp;L et la courbe d'équité sont calculés automatiquement.</p>
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <span class="step-number">3</span>
+        <div class="step-content">
+          <h3>Ajouter des indicateurs <span class="optional-badge">optionnel</span></h3>
+          <p>Visualisez vos indicateurs sur les graphiques :</p>
+          <pre class="code-block">bt.add_series(
+    id="rsi_14",
+    label="RSI (14)",
+    type="line",        # "line", "histogram" ou "area"
+    color="#2196F3",
+    data=[
+        {{ '{' }}"time": "2025-01-15", "value": 45.2{{ '}' }},
+        {{ '{' }}"time": "2025-01-16", "value": 52.1{{ '}' }},
+    ]
+)</pre>
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <span class="step-number">4</span>
+        <div class="step-content">
+          <h3>Uploader et analyser</h3>
+          <p>Glissez votre fichier <code>.json</code> ci-dessous ou collez le contenu JSON, puis cliquez <strong>Analyser</strong>.</p>
+          <p>La plateforme calculera automatiquement toutes les métriques : Sharpe, Sortino, drawdown, win rate, etc.</p>
+        </div>
+      </div>
+
+      <div class="guide-format">
+        <h3>Format JSON attendu</h3>
+        <pre class="code-block">{{ '{' }}
+  "metadata": {{ '{' }}
+    "ticker": "AAPL",
+    "period": "1Y",
+    "capital_initial": 10000,
+    "strategy": "Ma Stratégie"
+  {{ '}' }},
+  "trades": [
+    {{ '{' }}
+      "entry_time": "2025-01-15",
+      "exit_time": "2025-01-22",
+      "direction": "long",
+      "entry_price": 150.25,
+      "exit_price": 158.40,
+      "fees": 2.50
+    {{ '}' }}
+  ],
+  "custom_series": []
+{{ '}' }}</pre>
+      </div>
+    </div>
+  }
+
   <!-- Toggle file / paste -->
   <div class="mode-toggle">
     <button mat-stroked-button
