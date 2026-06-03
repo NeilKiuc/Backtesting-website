@@ -1,154 +1,172 @@
 <div class="dashboard-wrapper">
 
-  <!-- Header -->
+  <!-- ── Header ── -->
   <div class="dashboard-header">
     @if (isDemo()) {
       <h1>Bienvenue</h1>
-      <p class="subtitle">Vous êtes en mode démo — connectez-vous pour sauvegarder vos backtests.</p>
+      <p class="subtitle">Mode démo — connectez-vous pour sauvegarder vos backtests.</p>
     } @else {
       <h1>Bonjour, {{ user()?.username }} 👋</h1>
       <p class="subtitle">Voici un résumé de votre activité</p>
     }
   </div>
 
-  <!-- Stats -->
-  <div class="stats-row">
-    <mat-card appearance="outlined" class="stat-card">
-      <mat-card-content>
-        <div class="stat-icon-wrap accent-blue">
+  <!-- ── Grille principale ── -->
+  <div class="main-grid">
+
+    <!-- ══ Carte historique (gauche, grande) ══ -->
+    <mat-card appearance="outlined" class="card-historique">
+
+      <mat-card-header>
+        <div mat-card-avatar class="avatar-history">
           <mat-icon>history</mat-icon>
         </div>
-        <p class="stat-value">{{ isDemo() ? demoHistory().length : totalBacktests() }}</p>
-        <p class="stat-label">Backtests lancés</p>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card appearance="outlined" class="stat-card">
-      <mat-card-content>
-        <div class="stat-icon-wrap accent-green">
-          <mat-icon>trending_up</mat-icon>
-        </div>
-        <p class="stat-value">{{ isDemo() ? (demoBestResult() ? demoBestResult()!.metrics.total_return_pct.toFixed(2) + '%' : '—') : (bestReturn() ? pct(bestReturn()!.total_return_strat) : '—') }}</p>
-        <p class="stat-label">Meilleur retour</p>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card appearance="outlined" class="stat-card">
-      <mat-card-content>
-        <div class="stat-icon-wrap accent-purple">
-          <mat-icon>emoji_events</mat-icon>
-        </div>
-        <p class="stat-value">{{ isDemo() ? (demoBestResult()?.strategy?.toUpperCase() ?? '—') : (bestReturn()?.strategy ?? '—') }}</p>
-        <p class="stat-label">Meilleure stratégie</p>
-      </mat-card-content>
-    </mat-card>
-  </div>
-
-  <!-- Dernier backtest démo -->
-  @if (isDemo() && lastDemo(); as last) {
-    <mat-card appearance="outlined" class="last-backtest-card">
-      <mat-card-header>
-        <mat-icon mat-card-avatar>bar_chart</mat-icon>
-        <mat-card-title>Dernier backtest</mat-card-title>
-        <mat-card-subtitle>{{ last.ticker }} — {{ last.strategy.toUpperCase() }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="last-stats">
-          <div class="last-stat">
-            <span class="lbl">Stratégie</span>
-            <span class="val" [class.positive]="last.metrics.total_return_pct > 0"
-                              [class.negative]="last.metrics.total_return_pct < 0">
-              {{ last.metrics.total_return_pct.toFixed(2) }}%
-            </span>
-          </div>
-          <div class="last-stat">
-            <span class="lbl">Marché</span>
-            <span class="val">{{ last.metrics.market_return_pct !== null ? last.metrics.market_return_pct.toFixed(2) + '%' : '—' }}</span>
-          </div>
-          <div class="last-stat">
-            <span class="lbl">Sharpe</span>
-            <span class="val">{{ last.metrics.sharpe_ratio.toFixed(2) }}</span>
-          </div>
-          <div class="last-stat">
-            <span class="lbl">Drawdown max</span>
-            <span class="val negative">{{ last.metrics.max_drawdown_pct.toFixed(2) }}%</span>
-          </div>
-          <div class="last-stat">
-            <span class="lbl">Trades</span>
-            <span class="val">{{ last.metrics.n_trades }}</span>
-          </div>
-          <div class="last-stat">
-            <span class="lbl">Win rate</span>
-            <span class="val">{{ last.metrics.win_rate_pct.toFixed(2) }}%</span>
-          </div>
-        </div>
-      </mat-card-content>
-      <mat-card-actions>
-        <button mat-button routerLink="/results">Voir les résultats complets</button>
-      </mat-card-actions>
-    </mat-card>
-  }
-
-  <!-- Derniers backtests -->
-  @if (!isDemo() && recent().length > 0) {
-    <mat-card appearance="outlined" class="recent-card">
-      <mat-card-header>
-        <mat-card-title>Derniers backtests</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        @for (row of recent(); track row.id) {
-          <div class="recent-row">
-            <div class="recent-left">
-              <span class="recent-ticker">{{ row.ticker }}</span>
-              <span class="recent-meta">{{ row.strategy }} · {{ row.period }} · {{ row.created_at | date:'dd/MM/yy' }}</span>
-            </div>
-            <span class="recent-return" [class.positive]="row.total_return_strat > 0" [class.negative]="row.total_return_strat < 0">
-              {{ pct(row.total_return_strat) }}
-            </span>
-          </div>
-          <mat-divider />
+        <mat-card-title>Historiques Backtests lancés</mat-card-title>
+        @if (!loading()) {
+          <mat-card-subtitle
+            [matBadge]="isDemo() ? demoHistory().length : totalBacktests()"
+            matBadgeColor="primary"
+            matBadgeOverlap="false">
+            {{ isDemo() ? demoHistory().length : totalBacktests() }}
+            backtest{{ (isDemo() ? demoHistory().length : totalBacktests()) > 1 ? 's' : '' }}
+          </mat-card-subtitle>
         }
-      </mat-card-content>
-      <mat-card-actions>
-        <button mat-button routerLink="/results">Voir tout l'historique</button>
-      </mat-card-actions>
-    </mat-card>
-  }
+      </mat-card-header>
 
-  <!-- Actions rapides -->
-  <div class="actions-row">
-    <mat-card appearance="outlined" class="action-card" routerLink="/data">
-      <mat-card-content>
-        <mat-icon>candlestick_chart</mat-icon>
-        <p>Données de marché</p>
+      <mat-divider />
+
+      <mat-card-content class="historique-content">
+
+        <!-- Chargement -->
+        @if (loading()) {
+          <div class="state-center">
+            <mat-spinner diameter="52" />
+            <p>Chargement…</p>
+          </div>
+        }
+
+        <!-- Mode démo -->
+        @else if (isDemo()) {
+          @if (demoHistory().length === 0) {
+            <div class="state-center state-empty">
+              <mat-icon class="empty-icon">inbox</mat-icon>
+              <p>Aucun backtest lancé en démo.</p>
+              <button mat-stroked-button routerLink="/backtests">
+                <mat-icon>play_arrow</mat-icon> Lancer mon premier backtest
+              </button>
+            </div>
+          } @else {
+            <mat-list>
+              @for (r of demoHistory(); track r.ticker + r.strategy) {
+                <mat-list-item class="history-item" matRipple>
+                  <mat-icon matListItemIcon [class.positive]="r.metrics.total_return_pct >= 0"
+                                            [class.negative]="r.metrics.total_return_pct < 0">
+                    {{ r.metrics.total_return_pct >= 0 ? 'trending_up' : 'trending_down' }}
+                  </mat-icon>
+                  <span matListItemTitle>{{ r.ticker }} — {{ r.strategy.toUpperCase() }}</span>
+                  <span matListItemLine class="history-meta">
+                    Sharpe : {{ r.metrics.sharpe_ratio.toFixed(2) }} &bull;
+                    {{ r.metrics.n_trades }} trade{{ r.metrics.n_trades > 1 ? 's' : '' }}
+                  </span>
+                  <span matListItemMeta
+                        [class.positive]="r.metrics.total_return_pct >= 0"
+                        [class.negative]="r.metrics.total_return_pct < 0"
+                        [matTooltip]="'Marché : ' + (r.metrics.market_return_pct?.toFixed(2) ?? '—') + '%'">
+                    {{ r.metrics.total_return_pct >= 0 ? '+' : '' }}{{ r.metrics.total_return_pct.toFixed(2) }}%
+                  </span>
+                </mat-list-item>
+                <mat-divider />
+              }
+            </mat-list>
+          }
+        }
+
+        <!-- Connecté -->
+        @else {
+          @if (history().length === 0) {
+            <div class="state-center state-empty">
+              <mat-icon class="empty-icon">inbox</mat-icon>
+              <p>Aucun backtest lancé pour l'instant.</p>
+              <button mat-stroked-button routerLink="/backtests">
+                <mat-icon>play_arrow</mat-icon> Lancer mon premier backtest
+              </button>
+            </div>
+          } @else {
+            <mat-list>
+              @for (r of history(); track r.id) {
+                <mat-list-item class="history-item" matRipple>
+                  <mat-icon matListItemIcon [class.positive]="r.total_return_strat >= 0"
+                                            [class.negative]="r.total_return_strat < 0">
+                    {{ r.total_return_strat >= 0 ? 'trending_up' : 'trending_down' }}
+                  </mat-icon>
+                  <span matListItemTitle>{{ r.ticker }} — {{ r.strategy }}</span>
+                  <span matListItemLine class="history-meta">
+                    {{ r.period }} &bull; {{ r.created_at | date:'dd/MM/yyyy' }} &bull;
+                    Sharpe {{ r.sharpe_ratio | number:'1.2-2' }}
+                  </span>
+                  <span matListItemMeta
+                        [class.positive]="r.total_return_strat >= 0"
+                        [class.negative]="r.total_return_strat < 0"
+                        [matTooltip]="'Marché : ' + pct(r.total_return_market)">
+                    {{ pct(r.total_return_strat) }}
+                  </span>
+                </mat-list-item>
+                <mat-divider />
+              }
+            </mat-list>
+          }
+        }
+
       </mat-card-content>
+
+      @if (!isDemo() && history().length > 0) {
+        <mat-divider />
+        <mat-card-actions>
+          <button mat-button routerLink="/results">
+            <mat-icon>open_in_new</mat-icon> Voir tout l'historique
+          </button>
+        </mat-card-actions>
+      }
+
     </mat-card>
 
-    <mat-card appearance="outlined" class="action-card" routerLink="/backtests">
-      <mat-card-content>
-        <mat-icon>play_circle</mat-icon>
-        <p>Lancer un backtest</p>
-      </mat-card-content>
-    </mat-card>
+    <!-- ══ Colonne droite : 3 cartes ══ -->
+    <div class="right-column">
 
-    <mat-card appearance="outlined" class="action-card" routerLink="/results">
-      <mat-card-content>
-        <mat-icon>assessment</mat-icon>
-        <p>Résultats</p>
-      </mat-card-content>
-    </mat-card>
+      <!-- Stratégies -->
+      <mat-card appearance="outlined" class="card-nav card-strategies"
+                routerLink="/strategies" matRipple
+                matTooltip="Accéder aux stratégies">
+        <mat-card-content>
+          <mat-icon class="nav-icon">bar_chart</mat-icon>
+          <p class="card-label">Stratégies</p>
+          <p class="card-sub">Gérer vos stratégies</p>
+        </mat-card-content>
+      </mat-card>
 
-    <mat-card appearance="outlined" class="action-card" routerLink="/settings">
-      <mat-card-content>
-        <mat-icon>settings</mat-icon>
-        <p>Paramètres</p>
-      </mat-card-content>
-    </mat-card>
+      <!-- Marché suivis -->
+      <mat-card appearance="outlined" class="card-nav card-marche"
+                routerLink="/data" matRipple
+                matTooltip="Accéder aux données de marché">
+        <mat-card-content>
+          <mat-icon class="nav-icon">candlestick_chart</mat-icon>
+          <p class="card-label">Marché suivis</p>
+          <p class="card-sub">Explorer les données</p>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Lancer un backtest -->
+      <mat-card appearance="filled" class="card-launch"
+                routerLink="/backtests" matRipple
+                matTooltip="Lancer un nouveau backtest">
+        <mat-card-content>
+          <mat-icon class="launch-icon">play_circle</mat-icon>
+          <p class="card-label">Lancer un backtest</p>
+        </mat-card-content>
+      </mat-card>
+
+    </div>
   </div>
 
 </div>
 
-<button mat-fab extended color="primary" class="fab-backtest" routerLink="/backtests">
-  <mat-icon>play_arrow</mat-icon>
-  Lancer un backtest
-</button>
