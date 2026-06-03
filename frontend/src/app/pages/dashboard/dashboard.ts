@@ -1,17 +1,27 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatListModule } from '@angular/material/list';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatRippleModule } from '@angular/material/core';
 import { AuthService } from '../../../services/auth.service';
 import { DataService, BacktestRecord, NormalizedResult } from '../../../services/data-service';
 import { BacktestHistoryService } from '../../../services/backtest-history.service';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [MatCardModule, MatIconModule, MatButtonModule, MatDividerModule, RouterLink, DatePipe],
+  imports: [
+    MatCardModule, MatIconModule, MatButtonModule, MatDividerModule,
+    MatListModule, MatProgressSpinnerModule, MatTooltipModule,
+    MatBadgeModule, MatRippleModule,
+    RouterLink, DatePipe, DecimalPipe,
+  ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
