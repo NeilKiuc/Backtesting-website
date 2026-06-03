@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Navbar } from './components/navbar/navbar';
 
 @Component({
@@ -7,4 +7,9 @@ import { Navbar } from './components/navbar/navbar';
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {}
+export class App implements OnInit {
+  ngOnInit() {
+    const saved = localStorage.getItem('theme');
+    document.body.classList.toggle('dark-theme', saved === 'dark');
+  }
+}
