@@ -152,9 +152,9 @@
 
 	img {
 		height: 32px;
-		width: auto;
-		max-width: 140px;
-		object-fit: contain;
+		width: 32px;
+		border-radius: 50%;
+		object-fit: cover;
 		display: block;
         
 	}
