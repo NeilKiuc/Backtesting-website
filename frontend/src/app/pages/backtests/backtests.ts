@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DataService, BacktestResult, normalizeOldResult } from '../../../services/data-service';
 import { AuthService } from '../../../services/auth.service';
 import { BacktestHistoryService } from '../../../services/backtest-history.service';
+import { NotificationService } from '../../../services/notification.service';
 
 const TICKER_MAP: Record<string, string> = {
   sp500:  '^GSPC',
@@ -44,6 +45,7 @@ export class Backtests {
   private auth        = inject(AuthService);
   private router      = inject(Router);
   private historyService = inject(BacktestHistoryService);
+  private notifService = inject(NotificationService);
 
   ticker   = signal<string>('sp500');
   period   = signal<string>('1Y');
@@ -85,12 +87,14 @@ export class Backtests {
         this.historyService.push(normalized);
         this.result.set(data);
         this.isLoading.set(false);
+        this.notifService.push(`Backtest ${this.strategy().toUpperCase()} sur ${this.ticker()} terminé`, 'success');
         this.router.navigate(['/results'], { state: { result: normalized } });
       },
       error: (err) => {
         const detail = err?.error?.detail ?? 'Impossible de joindre le serveur.';
         this.errorMessage.set(detail);
         this.isLoading.set(false);
+        this.notifService.push(`Échec du backtest : ${detail}`, 'error');
       },
     });
   }

@@ -14,6 +14,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../services/auth.service';
 import { DataService } from '../../../services/data-service';
+import { NotificationService } from '../../../services/notification.service';
 
 type CategoryId = 'compte' | 'apparence' | 'notifications' | 'securite' | 'confidentialite' | 'danger';
 
@@ -59,6 +60,7 @@ export class Settings implements OnInit {
   private snackBar = inject(MatSnackBar);
   private auth     = inject(AuthService);
   private dataService = inject(DataService);
+  private notifService = inject(NotificationService);
 
   languages = ['Français', 'English', 'Español'];
 
@@ -68,7 +70,7 @@ export class Settings implements OnInit {
     { id: 'notifications',   label: 'Notifications',   icon: 'notifications' },
     { id: 'securite',        label: 'Sécurité',        icon: 'security'     },
     { id: 'confidentialite', label: 'Confidentialité', icon: 'privacy_tip'  },
-    { id: 'danger',          label: 'Zone de danger',  icon: 'warning'      },
+    { id: 'danger',          label: 'Supprimer le compte', icon: 'delete_forever' },
   ];
 
   activeCategory: CategoryId = 'compte';
@@ -109,12 +111,18 @@ export class Settings implements OnInit {
 
   setTheme(theme: 'light' | 'dark') {
     this.model.theme = theme;
-    this.onModelChange();
+    this.applyTheme(theme);
+    this.saveLocalPrefs();
   }
 
   private applyTheme(theme: 'light' | 'dark') {
     document.body.classList.toggle('dark-theme', theme === 'dark');
-    document.documentElement.classList.toggle('dark-theme', theme === 'dark');
+  }
+
+  saveLocalPrefs() {
+    const { username, email, ...prefs } = this.model;
+    localStorage.setItem('app-settings', JSON.stringify(prefs));
+    this.notifService.setEnabled(this.model.notifications);
   }
 
   saveSettings() {

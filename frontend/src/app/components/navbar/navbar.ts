@@ -8,13 +8,18 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { DatePipe } from '@angular/common';
 import { AuthService, UserInfo } from '../../../services/auth.service';
+import { NotificationService } from '../../../services/notification.service';
 
 @Component({
   selector: 'app-navbar',
   imports: [
     MatSidenavModule, MatToolbarModule, MatListModule,
     MatIconModule, MatButtonModule, MatMenuModule, MatDividerModule,
+    MatBadgeModule, MatTooltipModule, DatePipe,
     RouterLink, RouterOutlet,
   ],
   templateUrl: './navbar.html',
@@ -24,6 +29,7 @@ export class Navbar implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
   private breakpoints = inject(BreakpointObserver);
+  notifService = inject(NotificationService);
 
   @ViewChild('sidenav') sidenav!: MatSidenav;
 

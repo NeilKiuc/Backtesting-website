@@ -60,8 +60,19 @@
               <mat-form-field class="full-width" appearance="outline">
                 <mat-label>Adresse email</mat-label>
                 <mat-icon matPrefix>email</mat-icon>
-                <input matInput type="email" [(ngModel)]="model.email" (ngModelChange)="onModelChange()" placeholder="exemple@mail.com" />
+                <input matInput type="email" [ngModel]="model.email" disabled placeholder="exemple@mail.com" />
+                <mat-hint>L'adresse email est liée à votre compte Google et ne peut pas être modifiée.</mat-hint>
               </mat-form-field>
+              <div class="account-save-row">
+                <button mat-raised-button color="primary" (click)="saveSettings()" [disabled]="!hasChanges || saving">
+                  @if (saving) {
+                    <mat-spinner diameter="18" style="display:inline-block; margin-right:8px"></mat-spinner>
+                  } @else {
+                    <mat-icon>save</mat-icon>
+                  }
+                  Enregistrer
+                </button>
+              </div>
             </mat-card-content>
           </mat-card>
         </div>
@@ -330,20 +341,16 @@
         </div>
       }
 
-      <!-- Zone de danger -->
+      <!-- Suppression du compte -->
       @if (activeCategory === 'danger') {
         <div class="category-panel">
           <mat-card appearance="outlined" class="danger-card">
             <mat-card-header>
-              <mat-icon mat-card-avatar class="card-icon-danger">warning</mat-icon>
-              <mat-card-title>Zone de danger</mat-card-title>
-              <mat-card-subtitle>Actions irréversibles sur votre compte</mat-card-subtitle>
+              <mat-icon mat-card-avatar class="card-icon-danger">delete_forever</mat-icon>
+              <mat-card-title>Suppression du compte</mat-card-title>
+              <mat-card-subtitle>Cette action est irréversible</mat-card-subtitle>
             </mat-card-header>
             <mat-card-content>
-              <div class="danger-warning">
-                <mat-icon>error_outline</mat-icon>
-                <span>Les actions ci-dessous sont permanentes et ne peuvent pas être annulées.</span>
-              </div>
               <div class="danger-action">
                 <div class="danger-action-text">
                   <p class="toggle-title">Supprimer mon compte</p>
@@ -359,27 +366,6 @@
         </div>
       }
 
-      <!-- Footer -->
-      <div class="settings-footer">
-        @if (hasChanges) {
-          <span class="unsaved-label">
-            <mat-icon>edit_note</mat-icon> Modifications non enregistrées
-          </span>
-        }
-        <div class="button-group">
-          <button mat-stroked-button (click)="resetSettings()" matTooltip="Remettre les valeurs par défaut">
-            <mat-icon>restart_alt</mat-icon> Réinitialiser
-          </button>
-          <button mat-raised-button color="primary" (click)="saveSettings()" [disabled]="!hasChanges || saving">
-            @if (saving) {
-              <mat-spinner diameter="18" style="display:inline-block; margin-right:8px"></mat-spinner>
-            } @else {
-              <mat-icon>save</mat-icon>
-            }
-            Enregistrer
-          </button>
-        </div>
-      </div>
 
     </main>
   </div>

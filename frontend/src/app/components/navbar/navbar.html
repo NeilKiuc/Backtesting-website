@@ -48,6 +48,41 @@
       }
       <span class="spacer"></span>
 
+      <!-- Cloche notifications -->
+      <button mat-icon-button [matMenuTriggerFor]="notifMenu" matTooltip="Notifications"
+              (menuOpened)="notifService.markAllRead()">
+        <mat-icon
+          [matBadge]="notifService.unreadCount() || null"
+          matBadgeColor="warn"
+          matBadgeSize="small">
+          notifications
+        </mat-icon>
+      </button>
+
+      <mat-menu #notifMenu="matMenu" class="notif-menu">
+        <div class="notif-header" (click)="$event.stopPropagation()">
+          <span>Notifications</span>
+          @if (notifService.notifications().length) {
+            <button mat-button color="warn" (click)="notifService.clear()">Tout effacer</button>
+          }
+        </div>
+        <mat-divider />
+        @if (notifService.notifications().length === 0) {
+          <div class="notif-empty">Aucune notification</div>
+        }
+        @for (n of notifService.notifications(); track n.id) {
+          <div class="notif-item notif-{{ n.type }}" (click)="$event.stopPropagation()">
+            <mat-icon class="notif-icon">
+              {{ n.type === 'success' ? 'check_circle' : n.type === 'error' ? 'error' : 'info' }}
+            </mat-icon>
+            <div class="notif-body">
+              <span class="notif-msg">{{ n.message }}</span>
+              <span class="notif-time">{{ n.timestamp | date:'HH:mm' }}</span>
+            </div>
+          </div>
+        }
+      </mat-menu>
+
       @if (isDemo()) {
         <span class="demo-badge">Mode démo</span>
         <button mat-stroked-button (click)="logout()">Se connecter</button>
