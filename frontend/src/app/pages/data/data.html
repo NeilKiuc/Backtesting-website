@@ -4,8 +4,18 @@
   <mat-form-field>
     <mat-label>Data Base</mat-label>
     <mat-select [value]="ticker()" (selectionChange)="ticker.set($event.value)">
-        <mat-option value="sp500">S&P 500</mat-option>
-        <mat-option value="nasdaq">NASDAQ</mat-option>
+        <mat-optgroup label="US">
+            <mat-option value="sp500">S&P 500</mat-option>
+            <mat-option value="nasdaq">NASDAQ</mat-option>
+            <mat-option value="nq">Nasdaq Futures</mat-option>
+        </mat-optgroup>
+        <mat-optgroup label="International">
+            <mat-option value="cac40">CAC 40</mat-option>
+            <mat-option value="dax">DAX</mat-option>
+            <mat-option value="ftse100">FTSE 100</mat-option>
+            <mat-option value="nikkei">Nikkei 225</mat-option>
+            <mat-option value="hangseng">Hang Seng</mat-option>
+        </mat-optgroup>
     </mat-select>
   </mat-form-field>
 

@@ -23,10 +23,7 @@
         </div>
         <mat-card-title>Historiques Backtests lancés</mat-card-title>
         @if (!loading()) {
-          <mat-card-subtitle
-            [matBadge]="isDemo() ? demoHistory().length : totalBacktests()"
-            matBadgeColor="primary"
-            matBadgeOverlap="false">
+          <mat-card-subtitle>
             {{ isDemo() ? demoHistory().length : totalBacktests() }}
             backtest{{ (isDemo() ? demoHistory().length : totalBacktests()) > 1 ? 's' : '' }}
           </mat-card-subtitle>
@@ -36,87 +33,13 @@
       <mat-divider />
 
       <mat-card-content class="historique-content">
-
-        <!-- Chargement -->
-        @if (loading()) {
-          <div class="state-center">
-            <mat-spinner diameter="52" />
-            <p>Chargement…</p>
-          </div>
-        }
-
-        <!-- Mode démo -->
-        @else if (isDemo()) {
-          @if (demoHistory().length === 0) {
-            <div class="state-center state-empty">
-              <mat-icon class="empty-icon">inbox</mat-icon>
-              <p>Aucun backtest lancé en démo.</p>
-              <button mat-stroked-button routerLink="/backtests">
-                <mat-icon>play_arrow</mat-icon> Lancer mon premier backtest
-              </button>
-            </div>
-          } @else {
-            <mat-list>
-              @for (r of demoHistory(); track r.ticker + r.strategy) {
-                <mat-list-item class="history-item" matRipple>
-                  <mat-icon matListItemIcon [class.positive]="r.metrics.total_return_pct >= 0"
-                                            [class.negative]="r.metrics.total_return_pct < 0">
-                    {{ r.metrics.total_return_pct >= 0 ? 'trending_up' : 'trending_down' }}
-                  </mat-icon>
-                  <span matListItemTitle>{{ r.ticker }} — {{ r.strategy.toUpperCase() }}</span>
-                  <span matListItemLine class="history-meta">
-                    Sharpe : {{ r.metrics.sharpe_ratio.toFixed(2) }} &bull;
-                    {{ r.metrics.n_trades }} trade{{ r.metrics.n_trades > 1 ? 's' : '' }}
-                  </span>
-                  <span matListItemMeta
-                        [class.positive]="r.metrics.total_return_pct >= 0"
-                        [class.negative]="r.metrics.total_return_pct < 0"
-                        [matTooltip]="'Marché : ' + (r.metrics.market_return_pct?.toFixed(2) ?? '—') + '%'">
-                    {{ r.metrics.total_return_pct >= 0 ? '+' : '' }}{{ r.metrics.total_return_pct.toFixed(2) }}%
-                  </span>
-                </mat-list-item>
-                <mat-divider />
-              }
-            </mat-list>
-          }
-        }
-
-        <!-- Connecté -->
-        @else {
-          @if (history().length === 0) {
-            <div class="state-center state-empty">
-              <mat-icon class="empty-icon">inbox</mat-icon>
-              <p>Aucun backtest lancé pour l'instant.</p>
-              <button mat-stroked-button routerLink="/backtests">
-                <mat-icon>play_arrow</mat-icon> Lancer mon premier backtest
-              </button>
-            </div>
-          } @else {
-            <mat-list>
-              @for (r of history(); track r.id) {
-                <mat-list-item class="history-item" matRipple>
-                  <mat-icon matListItemIcon [class.positive]="r.total_return_strat >= 0"
-                                            [class.negative]="r.total_return_strat < 0">
-                    {{ r.total_return_strat >= 0 ? 'trending_up' : 'trending_down' }}
-                  </mat-icon>
-                  <span matListItemTitle>{{ r.ticker }} — {{ r.strategy }}</span>
-                  <span matListItemLine class="history-meta">
-                    {{ r.period }} &bull; {{ r.created_at | date:'dd/MM/yyyy' }} &bull;
-                    Sharpe {{ r.sharpe_ratio | number:'1.2-2' }}
-                  </span>
-                  <span matListItemMeta
-                        [class.positive]="r.total_return_strat >= 0"
-                        [class.negative]="r.total_return_strat < 0"
-                        [matTooltip]="'Marché : ' + pct(r.total_return_market)">
-                    {{ pct(r.total_return_strat) }}
-                  </span>
-                </mat-list-item>
-                <mat-divider />
-              }
-            </mat-list>
-          }
-        }
-
+        <app-history-panel
+          [history]="history()"
+          [demoHistory]="demoHistory()"
+          [isDemo]="isDemo()"
+          [loading]="loading()"
+          (deleted)="onDelete($event)">
+        </app-history-panel>
       </mat-card-content>
 
       @if (!isDemo() && history().length > 0) {

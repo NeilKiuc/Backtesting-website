@@ -15,9 +15,16 @@ import { BacktestHistoryService } from '../../../services/backtest-history.servi
 import { NotificationService } from '../../../services/notification.service';
 
 const TICKER_MAP: Record<string, string> = {
+  // Indices US
   sp500:  '^GSPC',
   nasdaq: '^IXIC',
   nq:     'NQ=F',
+  // Indices internationaux
+  cac40:    '^FCHI',
+  dax:      '^GDAXI',
+  ftse100:  '^FTSE',
+  nikkei:   '^N225',
+  hangseng: '^HSI',
 };
 
 const DEFAULT_PARAMS: Record<string, Record<string, number>> = {
