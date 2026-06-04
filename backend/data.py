@@ -7,9 +7,16 @@ from cache import get_cached_data, store_cached_data
 router = APIRouter()
 
 TICKER_MAP = {
+    # Indices US
     "sp500": "^GSPC",
     "nasdaq": "^IXIC",
     "nq": "NQ=F",
+    # Indices internationaux
+    "cac40": "^FCHI",
+    "dax": "^GDAXI",
+    "ftse100": "^FTSE",
+    "nikkei": "^N225",
+    "hangseng": "^HSI",
 }
 
 PERIOD_CONFIG = {
