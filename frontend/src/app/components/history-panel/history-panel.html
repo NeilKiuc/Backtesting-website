@@ -1,0 +1,465 @@
+<!-- ── Spinner ── -->
+@if (loading) {
+  <div class="state-center">
+    <mat-spinner diameter="48" />
+  </div>
+}
+
+<!-- ── État vide ── -->
+@if (!loading && (isDemo ? demoHistory.length === 0 : history.length === 0)) {
+  <div class="state-center state-empty">
+    <mat-icon class="empty-icon">query_stats</mat-icon>
+    <p>Aucun backtest lancé pour l'instant.</p>
+  </div>
+}
+
+<!-- ── Contenu ── -->
+@if (!loading && (isDemo ? demoHistory.length > 0 : history.length > 0)) {
+
+  <!-- ══ Mode démo ══ -->
+  @if (isDemo) {
+    <mat-accordion multi>
+      @for (r of demoHistory; track r.ticker + r.strategy) {
+        <mat-expansion-panel class="history-expansion">
+
+          <!-- En-tête -->
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-chip-set>
+                <mat-chip class="chip-ticker">{{ r.ticker }}</mat-chip>
+              </mat-chip-set>
+              <span class="strategy-name">{{ r.strategy.toUpperCase() }}</span>
+            </mat-panel-title>
+            <mat-panel-description>
+              <span class="return-badge"
+                    [class.badge-pos]="r.metrics.total_return_pct >= 0"
+                    [class.badge-neg]="r.metrics.total_return_pct < 0">
+                {{ pct(r.metrics.total_return_pct) }}
+              </span>
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+
+
+          <!-- Détail -->
+          <div class="detail">
+
+            <!-- KPI grid -->
+            <div class="kpi-grid">
+
+              <mat-card class="kpi-card" appearance="outlined"
+                        matTooltip="Rendement total de la stratégie">
+                <mat-card-content>
+                  <mat-icon [class]="r.metrics.total_return_pct >= 0 ? 'positive' : 'negative'">
+                    {{ r.metrics.total_return_pct >= 0 ? 'trending_up' : 'trending_down' }}
+                  </mat-icon>
+                  <span class="kpi-val" [class]="r.metrics.total_return_pct >= 0 ? 'positive' : 'negative'">
+                    {{ pct(r.metrics.total_return_pct) }}
+                  </span>
+                  <span class="kpi-lbl">Retour stratégie</span>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="kpi-card" appearance="outlined"
+                        [matTooltip]="sharpeLabel(r.metrics.sharpe_ratio) + ' — ratio risque/rendement'">
+                <mat-card-content>
+                  <mat-icon [class]="sharpeClass(r.metrics.sharpe_ratio)">speed</mat-icon>
+                  <span class="kpi-val" [class]="sharpeClass(r.metrics.sharpe_ratio)">
+                    {{ r.metrics.sharpe_ratio | number:'1.2-2' }}
+                  </span>
+                  <span class="kpi-lbl">Sharpe</span>
+                  <mat-chip class="chip-quality chip-{{ sharpeClass(r.metrics.sharpe_ratio) }}">
+                    {{ sharpeLabel(r.metrics.sharpe_ratio) }}
+                  </mat-chip>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="kpi-card" appearance="outlined"
+                        matTooltip="Pire baisse depuis un pic — plus proche de 0 est mieux">
+                <mat-card-content>
+                  <mat-icon class="negative">waterfall_chart</mat-icon>
+                  <span class="kpi-val negative">{{ pct(r.metrics.max_drawdown_pct) }}</span>
+                  <span class="kpi-lbl">Max Drawdown</span>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="kpi-card" appearance="outlined"
+                        matTooltip="% de trades gagnants">
+                <mat-card-content>
+                  <mat-icon [class]="r.metrics.win_rate_pct >= 50 ? 'positive' : 'negative'">
+                    emoji_events
+                  </mat-icon>
+                  <span class="kpi-val" [class]="r.metrics.win_rate_pct >= 50 ? 'positive' : 'negative'">
+                    {{ r.metrics.win_rate_pct | number:'1.1-1' }}%
+                  </span>
+                  <span class="kpi-lbl">Win Rate</span>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="kpi-card" appearance="outlined"
+                        matTooltip="Nombre total de positions ouvertes/fermées">
+                <mat-card-content>
+                  <mat-icon class="neutral">swap_horiz</mat-icon>
+                  <span class="kpi-val neutral">{{ r.metrics.n_trades }}</span>
+                  <span class="kpi-lbl">Trades</span>
+                </mat-card-content>
+              </mat-card>
+
+              @if (r.metrics.profit_factor !== null) {
+                <mat-card class="kpi-card" appearance="outlined"
+                          matTooltip="Ratio gains bruts / pertes brutes. > 1 = rentable">
+                  <mat-card-content>
+                    <mat-icon [class]="r.metrics.profit_factor! >= 1 ? 'positive' : 'negative'">
+                      balance
+                    </mat-icon>
+                    <span class="kpi-val" [class]="r.metrics.profit_factor! >= 1 ? 'positive' : 'negative'">
+                      {{ r.metrics.profit_factor! | number:'1.2-2' }}
+                    </span>
+                    <span class="kpi-lbl">Profit Factor</span>
+                  </mat-card-content>
+                </mat-card>
+              }
+
+              @if (r.metrics.sortino_ratio !== null) {
+                <mat-card class="kpi-card" appearance="outlined"
+                          matTooltip="Sharpe ne pénalisant que la volatilité négative">
+                  <mat-card-content>
+                    <mat-icon [class]="r.metrics.sortino_ratio! >= 1 ? 'positive' : 'neutral'">
+                      show_chart
+                    </mat-icon>
+                    <span class="kpi-val" [class]="r.metrics.sortino_ratio! >= 1 ? 'positive' : 'neutral'">
+                      {{ r.metrics.sortino_ratio! | number:'1.2-2' }}
+                    </span>
+                    <span class="kpi-lbl">Sortino</span>
+                  </mat-card-content>
+                </mat-card>
+              }
+
+              @if (r.metrics.expectancy_pct !== null) {
+                <mat-card class="kpi-card" appearance="outlined"
+                          matTooltip="Gain moyen attendu par trade">
+                  <mat-card-content>
+                    <mat-icon [class]="r.metrics.expectancy_pct! >= 0 ? 'positive' : 'negative'">
+                      functions
+                    </mat-icon>
+                    <span class="kpi-val" [class]="r.metrics.expectancy_pct! >= 0 ? 'positive' : 'negative'">
+                      {{ pct(r.metrics.expectancy_pct!) }}
+                    </span>
+                    <span class="kpi-lbl">Espérance</span>
+                  </mat-card-content>
+                </mat-card>
+              }
+
+            </div>
+
+            <mat-divider />
+
+            <!-- Comparaison stratégie vs marché -->
+            <div class="comparison">
+              <p class="section-title">
+                <mat-icon>bar_chart</mat-icon> Stratégie vs Marché
+              </p>
+
+              <div class="bar-row">
+                <span class="bar-lbl">Stratégie</span>
+                <div class="bar-track">
+                  <div class="bar-fill"
+                       [class.bar-pos]="r.metrics.total_return_pct >= 0"
+                       [class.bar-neg]="r.metrics.total_return_pct < 0"
+                       [style.width.%]="barW(r.metrics.total_return_pct)">
+                  </div>
+                </div>
+                <span class="bar-val" [class]="r.metrics.total_return_pct >= 0 ? 'positive' : 'negative'">
+                  {{ pct(r.metrics.total_return_pct) }}
+                </span>
+              </div>
+
+              @if (r.metrics.market_return_pct !== null) {
+                <div class="bar-row">
+                  <span class="bar-lbl">Marché</span>
+                  <div class="bar-track">
+                    <div class="bar-fill bar-market"
+                         [style.width.%]="barW(r.metrics.market_return_pct!)">
+                    </div>
+                  </div>
+                  <span class="bar-val neutral">{{ pct(r.metrics.market_return_pct!) }}</span>
+                </div>
+
+                <div class="alpha-row">
+                  <mat-chip-set>
+                    <mat-chip class="chip-alpha"
+                              [class.chip-pos]="r.metrics.total_return_pct >= r.metrics.market_return_pct!"
+                              [class.chip-neg]="r.metrics.total_return_pct < r.metrics.market_return_pct!"
+                              matTooltip="Surperformance vs indice">
+                      <mat-icon matChipAvatar>
+                        {{ r.metrics.total_return_pct >= r.metrics.market_return_pct! ? 'arrow_upward' : 'arrow_downward' }}
+                      </mat-icon>
+                      Alpha : {{ alpha(r.metrics.total_return_pct, r.metrics.market_return_pct) }}
+                    </mat-chip>
+                  </mat-chip-set>
+                </div>
+              }
+            </div>
+
+            <mat-divider />
+
+            <!-- Win rate barre de progression -->
+            <div class="winrate-section">
+              <p class="section-title">
+                <mat-icon>emoji_events</mat-icon> Win Rate
+              </p>
+              <div class="winrate-row">
+                <span class="winrate-label">
+                  {{ r.metrics.n_trades }} trades —
+                  {{ (r.metrics.win_rate_pct / 100 * r.metrics.n_trades) | number:'1.0-0' }} gagnants
+                </span>
+                <span class="winrate-pct" [class]="r.metrics.win_rate_pct >= 50 ? 'positive' : 'negative'">
+                  {{ r.metrics.win_rate_pct | number:'1.1-1' }}%
+                </span>
+              </div>
+              <mat-progress-bar
+                mode="determinate"
+                [value]="r.metrics.win_rate_pct"
+                class="winrate-bar"
+                [class.bar-warn]="r.metrics.win_rate_pct < 50">
+              </mat-progress-bar>
+              <div class="bar-scale">
+                <span>0%</span><span class="mid">50%</span><span>100%</span>
+              </div>
+            </div>
+
+            <!-- Métriques avancées (si dispo) -->
+            @if (r.metrics.avg_win_pct !== null || r.metrics.avg_loss_pct !== null || r.metrics.time_in_market_pct !== null) {
+              <mat-divider />
+              <div class="advanced-section">
+                <p class="section-title">
+                  <mat-icon>analytics</mat-icon> Métriques avancées
+                </p>
+                <mat-chip-set class="advanced-chips">
+                  @if (r.metrics.avg_win_pct !== null) {
+                    <mat-chip matTooltip="Gain moyen par trade gagnant" class="chip-adv chip-pos">
+                      <mat-icon matChipAvatar>thumb_up</mat-icon>
+                      Moy. gain : +{{ r.metrics.avg_win_pct! | number:'1.2-2' }}%
+                    </mat-chip>
+                  }
+                  @if (r.metrics.avg_loss_pct !== null) {
+                    <mat-chip matTooltip="Perte moyenne par trade perdant" class="chip-adv chip-neg">
+                      <mat-icon matChipAvatar>thumb_down</mat-icon>
+                      Moy. perte : {{ r.metrics.avg_loss_pct! | number:'1.2-2' }}%
+                    </mat-chip>
+                  }
+                  @if (r.metrics.max_consecutive_losses !== null) {
+                    <mat-chip matTooltip="Nombre max de pertes consécutives" class="chip-adv chip-warn">
+                      <mat-icon matChipAvatar>warning</mat-icon>
+                      Pertes consec. : {{ r.metrics.max_consecutive_losses }}
+                    </mat-chip>
+                  }
+                  @if (r.metrics.time_in_market_pct !== null) {
+                    <mat-chip matTooltip="% du temps en position" class="chip-adv">
+                      <mat-icon matChipAvatar>timer</mat-icon>
+                      Temps marché : {{ r.metrics.time_in_market_pct! | number:'1.1-1' }}%
+                    </mat-chip>
+                  }
+                  @if (r.metrics.volatility_annualized_pct !== null) {
+                    <mat-chip matTooltip="Volatilité annualisée de la stratégie" class="chip-adv">
+                      <mat-icon matChipAvatar>ssid_chart</mat-icon>
+                      Volatilité : {{ r.metrics.volatility_annualized_pct! | number:'1.2-2' }}%
+                    </mat-chip>
+                  }
+                </mat-chip-set>
+              </div>
+            }
+
+          </div>
+        </mat-expansion-panel>
+      }
+    </mat-accordion>
+  }
+
+  <!-- ══ Mode connecté ══ -->
+  @if (!isDemo) {
+    <mat-accordion multi>
+      @for (r of history; track r.id) {
+        <mat-expansion-panel class="history-expansion">
+
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-chip-set>
+                <mat-chip class="chip-ticker">{{ r.ticker }}</mat-chip>
+              </mat-chip-set>
+              <span class="strategy-name">{{ r.strategy }}</span>
+            </mat-panel-title>
+            <mat-panel-description>
+              <span class="return-badge"
+                    [class.badge-pos]="r.total_return_strat >= 0"
+                    [class.badge-neg]="r.total_return_strat < 0">
+                {{ pct(r.total_return_strat * 100) }}
+              </span>
+              <span class="panel-date">{{ r.created_at | date:'dd/MM/yy' }}</span>
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+
+          <div class="detail">
+
+            <!-- KPI grid -->
+            <div class="kpi-grid">
+
+              <mat-card class="kpi-card" appearance="outlined"
+                        matTooltip="Rendement total de la stratégie">
+                <mat-card-content>
+                  <mat-icon [class]="r.total_return_strat >= 0 ? 'positive' : 'negative'">
+                    {{ r.total_return_strat >= 0 ? 'trending_up' : 'trending_down' }}
+                  </mat-icon>
+                  <span class="kpi-val" [class]="r.total_return_strat >= 0 ? 'positive' : 'negative'">
+                    {{ pct(r.total_return_strat * 100) }}
+                  </span>
+                  <span class="kpi-lbl">Retour stratégie</span>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="kpi-card" appearance="outlined"
+                        [matTooltip]="sharpeLabel(r.sharpe_ratio) + ' — ratio risque/rendement'">
+                <mat-card-content>
+                  <mat-icon [class]="sharpeClass(r.sharpe_ratio)">speed</mat-icon>
+                  <span class="kpi-val" [class]="sharpeClass(r.sharpe_ratio)">
+                    {{ r.sharpe_ratio | number:'1.2-2' }}
+                  </span>
+                  <span class="kpi-lbl">Sharpe</span>
+                  <mat-chip class="chip-quality chip-{{ sharpeClass(r.sharpe_ratio) }}">
+                    {{ sharpeLabel(r.sharpe_ratio) }}
+                  </mat-chip>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="kpi-card" appearance="outlined"
+                        matTooltip="Pire baisse depuis un pic">
+                <mat-card-content>
+                  <mat-icon class="negative">waterfall_chart</mat-icon>
+                  <span class="kpi-val negative">{{ pct(r.max_drawdown * 100) }}</span>
+                  <span class="kpi-lbl">Max Drawdown</span>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="kpi-card" appearance="outlined"
+                        matTooltip="% de trades gagnants">
+                <mat-card-content>
+                  <mat-icon [class]="r.win_rate >= 0.5 ? 'positive' : 'negative'">emoji_events</mat-icon>
+                  <span class="kpi-val" [class]="r.win_rate >= 0.5 ? 'positive' : 'negative'">
+                    {{ (r.win_rate * 100) | number:'1.1-1' }}%
+                  </span>
+                  <span class="kpi-lbl">Win Rate</span>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="kpi-card" appearance="outlined"
+                        matTooltip="Nombre total de trades">
+                <mat-card-content>
+                  <mat-icon class="neutral">swap_horiz</mat-icon>
+                  <span class="kpi-val neutral">{{ r.n_trades }}</span>
+                  <span class="kpi-lbl">Trades</span>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="kpi-card" appearance="outlined"
+                        matTooltip="Période analysée">
+                <mat-card-content>
+                  <mat-icon class="neutral">calendar_today</mat-icon>
+                  <span class="kpi-val neutral">{{ r.period }}</span>
+                  <span class="kpi-lbl">Période</span>
+                </mat-card-content>
+              </mat-card>
+
+            </div>
+
+            <mat-divider />
+
+            <!-- Comparaison -->
+            <div class="comparison">
+              <p class="section-title">
+                <mat-icon>bar_chart</mat-icon> Stratégie vs Marché
+              </p>
+              <div class="bar-row">
+                <span class="bar-lbl">Stratégie</span>
+                <div class="bar-track">
+                  <div class="bar-fill"
+                       [class.bar-pos]="r.total_return_strat >= 0"
+                       [class.bar-neg]="r.total_return_strat < 0"
+                       [style.width.%]="barW(r.total_return_strat * 100)">
+                  </div>
+                </div>
+                <span class="bar-val" [class]="r.total_return_strat >= 0 ? 'positive' : 'negative'">
+                  {{ pct(r.total_return_strat * 100) }}
+                </span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-lbl">Marché</span>
+                <div class="bar-track">
+                  <div class="bar-fill bar-market"
+                       [style.width.%]="barW(r.total_return_market * 100)">
+                  </div>
+                </div>
+                <span class="bar-val neutral">{{ pct(r.total_return_market * 100) }}</span>
+              </div>
+              <div class="alpha-row">
+                <mat-chip-set>
+                  <mat-chip class="chip-alpha"
+                            [class.chip-pos]="r.total_return_strat >= r.total_return_market"
+                            [class.chip-neg]="r.total_return_strat < r.total_return_market"
+                            matTooltip="Surperformance vs marché">
+                    <mat-icon matChipAvatar>
+                      {{ r.total_return_strat >= r.total_return_market ? 'arrow_upward' : 'arrow_downward' }}
+                    </mat-icon>
+                    Alpha : {{ alpha(r.total_return_strat * 100, r.total_return_market * 100) }}
+                  </mat-chip>
+                </mat-chip-set>
+              </div>
+            </div>
+
+            <mat-divider />
+
+            <!-- Win rate -->
+            <div class="winrate-section">
+              <p class="section-title">
+                <mat-icon>emoji_events</mat-icon> Win Rate
+              </p>
+              <div class="winrate-row">
+                <span class="winrate-label">
+                  {{ r.n_trades }} trades —
+                  {{ (r.win_rate * r.n_trades) | number:'1.0-0' }} gagnants
+                </span>
+                <span class="winrate-pct" [class]="r.win_rate >= 0.5 ? 'positive' : 'negative'">
+                  {{ (r.win_rate * 100) | number:'1.1-1' }}%
+                </span>
+              </div>
+              <mat-progress-bar
+                mode="determinate"
+                [value]="r.win_rate * 100"
+                class="winrate-bar"
+                [class.bar-warn]="r.win_rate < 0.5">
+              </mat-progress-bar>
+              <div class="bar-scale">
+                <span>0%</span><span class="mid">50%</span><span>100%</span>
+              </div>
+            </div>
+
+            <mat-divider />
+
+            <!-- Footer -->
+            <div class="panel-footer">
+              <mat-chip-set>
+                <mat-chip class="chip-meta">
+                  <mat-icon matChipAvatar>schedule</mat-icon>
+                  {{ r.created_at | date:'dd/MM/yyyy HH:mm' }}
+                </mat-chip>
+              </mat-chip-set>
+              <button mat-stroked-button color="warn" (click)="delete(r.id, $event)">
+                <mat-icon>delete_outline</mat-icon> Supprimer
+              </button>
+            </div>
+
+          </div>
+        </mat-expansion-panel>
+      }
+    </mat-accordion>
+  }
+
+}

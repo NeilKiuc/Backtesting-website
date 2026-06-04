@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,6 +13,7 @@ import { MatRippleModule } from '@angular/material/core';
 import { AuthService } from '../../../services/auth.service';
 import { DataService, BacktestRecord, NormalizedResult } from '../../../services/data-service';
 import { BacktestHistoryService } from '../../../services/backtest-history.service';
+import { HistoryPanelComponent } from '../../components/history-panel/history-panel';
 
 @Component({
   selector: 'app-dashboard',
@@ -20,7 +21,8 @@ import { BacktestHistoryService } from '../../../services/backtest-history.servi
     MatCardModule, MatIconModule, MatButtonModule, MatDividerModule,
     MatListModule, MatProgressSpinnerModule, MatTooltipModule,
     MatBadgeModule, MatRippleModule,
-    RouterLink, DatePipe, DecimalPipe,
+    RouterLink, DatePipe,
+    HistoryPanelComponent,
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
@@ -68,6 +70,12 @@ export class Dashboard implements OnInit {
       next: (data) => { this.history.set(data); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
+  }
+
+  onDelete(id: number): void {
+    this.dataService.deleteBacktest(id).subscribe(() =>
+      this.history.update(h => h.filter(r => r.id !== id))
+    );
   }
 
   pct(v: number): string {
