@@ -4,6 +4,16 @@ import { Observable } from 'rxjs';
 import { environment } from '../environments/environment';
 
 
+export interface StrategyInfo {
+  name: string;
+  description: string;
+  category: string;
+}
+
+export interface StrategiesResponse {
+  strategies: Record<string, StrategyInfo>;
+}
+
 export interface MarketData {
   Time: string;
   Open: number;
@@ -216,6 +226,10 @@ export function normalizeUploadResult(upload: UploadBacktestResult): NormalizedR
 export class DataService {
   private http = inject(HttpClient);
   private api = environment.apiUrl;
+
+  getStrategies(): Observable<StrategiesResponse> {
+    return this.http.get<StrategiesResponse>(`${this.api}/api/strategies`);
+  }
 
   getMarketData(ticker: string, period: string): Observable<MarketData[]> {
     return this.http.get<MarketData[]>(`${this.api}/api/data/${ticker}?period=${period}`);

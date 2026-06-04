@@ -201,7 +201,15 @@ def delete_backtest(backtest_id: int, db: Session = Depends(get_db)):
 
 @app.get("/api/strategies")
 def list_strategies():
-    return {"strategies": list(STRATEGIES_REGISTRY.keys())}
+    result = {}
+    for key, cls in STRATEGIES_REGISTRY.items():
+        instance = cls()
+        result[key] = {
+            "name": instance.name,
+            "description": instance.description,
+            "category": instance.category,
+        }
+    return {"strategies": result}
 
 
 @app.post("/api/backtest/upload")

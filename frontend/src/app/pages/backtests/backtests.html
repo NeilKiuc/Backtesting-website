@@ -23,12 +23,19 @@
   <mat-form-field>
     <mat-label>Stratégie</mat-label>
     <mat-select [value]="strategy()" (selectionChange)="onStrategyChange($event.value)">
-      <mat-option value="macd">MACD</mat-option>
-      <mat-option value="rsi">RSI</mat-option>
-      <mat-option value="ma_crossover">MA Crossover</mat-option>
+      @for (key of strategyKeys(); track key) {
+        <mat-option [value]="key">
+          {{ strategies()[key].name.toUpperCase() }}
+          <span class="strategy-category">[{{ strategies()[key].category }}]</span>
+        </mat-option>
+      }
     </mat-select>
   </mat-form-field>
 </div>
+
+@if (strategies()[strategy()]; as info) {
+  <p class="strategy-hint">{{ info.description }}</p>
+}
 
 <!-- ── Paramètres dynamiques ──────────────────────────────────────────── -->
 <div class="form-row params-row">

@@ -194,6 +194,10 @@
     &.chip-macd    { background: #0d47a1; color: #90caf9; }
     &.chip-rsi     { background: #4a148c; color: #ce93d8; }
     &.chip-ma      { background: #004d40; color: #80cbc4; }
+    &.chip-ema     { background: #1a237e; color: #9fa8da; }
+    &.chip-bb      { background: #bf360c; color: #ffab91; }
+    &.chip-stoch   { background: #880e4f; color: #f48fb1; }
+    &.chip-obv     { background: #33691e; color: #aed581; }
     &.chip-custom  { background: #1b5e20; color: #a5d6a7; }
     &.chip-default { background: #333;    color: #ccc; }
   }
