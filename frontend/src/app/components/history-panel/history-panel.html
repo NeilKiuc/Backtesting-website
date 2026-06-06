@@ -16,10 +16,37 @@
 <!-- ── Contenu ── -->
 @if (!loading && (isDemo ? demoHistory.length > 0 : history.length > 0)) {
 
+  <!-- Tri -->
+  <div class="sort-bar">
+
+    <button mat-stroked-button [matMenuTriggerFor]="sortMenu">
+      <mat-icon>sort</mat-icon>
+      Trier par : {{ sortKey() === 'date' ? 'Date' : 'Retour' }}
+      <mat-icon iconSuffix>arrow_drop_down</mat-icon>
+    </button>
+
+    <mat-menu #sortMenu="matMenu">
+      <button mat-menu-item (click)="onSortKey('date')"
+              [class.menu-active]="sortKey() === 'date'">
+        <mat-icon>calendar_today</mat-icon> Date
+      </button>
+      <button mat-menu-item (click)="onSortKey('return')"
+              [class.menu-active]="sortKey() === 'return'">
+        <mat-icon>trending_up</mat-icon> Retour stratégie
+      </button>
+    </mat-menu>
+
+    <button mat-icon-button (click)="toggleDir()"
+            [matTooltip]="sortDir() === 'desc' ? 'Décroissant' : 'Croissant'">
+      <mat-icon>{{ sortDir() === 'desc' ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
+    </button>
+
+  </div>
+
   <!-- ══ Mode démo ══ -->
   @if (isDemo) {
     <mat-accordion multi>
-      @for (r of demoHistory; track r.ticker + r.strategy) {
+      @for (r of sortedDemo(); track r.ticker + r.strategy) {
         <mat-expansion-panel class="history-expansion">
 
           <!-- En-tête -->
@@ -278,7 +305,7 @@
   <!-- ══ Mode connecté ══ -->
   @if (!isDemo) {
     <mat-accordion multi>
-      @for (r of history; track r.id) {
+      @for (r of sortedRecords(); track r.id) {
         <mat-expansion-panel class="history-expansion">
 
           <mat-expansion-panel-header>

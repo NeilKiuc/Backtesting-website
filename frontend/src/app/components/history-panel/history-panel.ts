@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, computed } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCardModule } from '@angular/material/card';
@@ -10,6 +10,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatMenuModule } from '@angular/material/menu';
 import { BacktestRecord, NormalizedResult } from '../../../services/data-service';
 
 @Component({
@@ -19,6 +21,7 @@ import { BacktestRecord, NormalizedResult } from '../../../services/data-service
     MatExpansionModule, MatCardModule, MatIconModule, MatButtonModule,
     MatChipsModule, MatProgressBarModule, MatDividerModule,
     MatTooltipModule, MatBadgeModule, MatProgressSpinnerModule,
+    MatButtonToggleModule, MatMenuModule,
   ],
   templateUrl: './history-panel.html',
   styleUrl:    './history-panel.scss',
@@ -29,6 +32,30 @@ export class HistoryPanelComponent {
   @Input() isDemo  = false;
   @Input() loading = false;
   @Output() deleted = new EventEmitter<number>();
+
+  sortKey = signal<'date' | 'return'>('date');
+  sortDir = signal<'asc' | 'desc'>('desc');
+
+  sortedDemo = computed(() =>
+    [...this.demoHistory].sort((a, b) => {
+      const d = this.sortKey() === 'return'
+        ? a.metrics.total_return_pct - b.metrics.total_return_pct
+        : 0;
+      return this.sortDir() === 'asc' ? d : -d;
+    })
+  );
+
+  sortedRecords = computed(() =>
+    [...this.history].sort((a, b) => {
+      let d = 0;
+      if (this.sortKey() === 'date')   d = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      if (this.sortKey() === 'return') d = a.total_return_strat - b.total_return_strat;
+      return this.sortDir() === 'asc' ? d : -d;
+    })
+  );
+
+  onSortKey(k: 'date' | 'return') { this.sortKey.set(k); }
+  toggleDir() { this.sortDir.update(d => d === 'asc' ? 'desc' : 'asc'); }
 
   pct(v: number, decimals = 2): string {
     return (v >= 0 ? '+' : '') + v.toFixed(decimals) + '%';
