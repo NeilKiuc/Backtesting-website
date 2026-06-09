@@ -16,6 +16,14 @@
 }
 .empty-icon { font-size: 52px; width: 52px; height: 52px; opacity: 0.4; }
 
+/* ── Barre de tri ── */
+.sort-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
 /* ── Accordéon ── */
 .history-expansion {
   margin-bottom: 6px;
