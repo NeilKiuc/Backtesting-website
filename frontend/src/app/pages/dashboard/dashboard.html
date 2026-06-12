@@ -2,36 +2,105 @@
 
   <!-- ── Header ── -->
   <div class="dashboard-header">
-    @if (isDemo()) {
-      <h1>Bienvenue</h1>
-      <p class="subtitle">Mode démo — connectez-vous pour sauvegarder vos backtests.</p>
-    } @else {
-      <h1>Bonjour, {{ user()?.username }} 👋</h1>
-      <p class="subtitle">Voici un résumé de votre activité</p>
+    <div class="header-text">
+      @if (isDemo()) {
+        <h1>Bienvenue</h1>
+        <p class="subtitle">Mode démo — connectez-vous pour sauvegarder vos backtests.</p>
+      } @else {
+        <h1>Bonjour, {{ user()?.username }}</h1>
+        <p class="subtitle">Voici un résumé de votre activité de backtesting</p>
+      }
+    </div>
+    @if (!loading()) {
+      <mat-chip-set class="header-stats" aria-label="Statistiques">
+        <mat-chip class="chip-count">
+          <mat-icon matChipAvatar>analytics</mat-icon>
+          {{ totalBacktests() }} backtest{{ totalBacktests() !== 1 ? 's' : '' }}
+        </mat-chip>
+        @if (bestReturnDisplay()) {
+          <mat-chip class="chip-best">
+            <mat-icon matChipAvatar>trending_up</mat-icon>
+            Meilleur : {{ bestReturnDisplay() }}
+          </mat-chip>
+        }
+      </mat-chip-set>
     }
   </div>
+
+  <!-- ── KPI Summary Row ── -->
+  @if (!loading() && totalBacktests() > 0) {
+    <div class="kpi-summary-row">
+
+      <mat-card appearance="outlined" class="kpi-sum-card" matRipple
+                matTooltip="Nombre total de backtests lancés">
+        <mat-card-content class="kpi-sum-content">
+          <div class="kpi-sum-icon icon-primary"><mat-icon>analytics</mat-icon></div>
+          <div class="kpi-sum-info">
+            <span class="kpi-sum-value">{{ totalBacktests() }}</span>
+            <span class="kpi-sum-label">Backtests</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined" class="kpi-sum-card" matRipple
+                matTooltip="Meilleur retour total enregistré">
+        <mat-card-content class="kpi-sum-content">
+          <div class="kpi-sum-icon icon-green"><mat-icon>trending_up</mat-icon></div>
+          <div class="kpi-sum-info">
+            <span class="kpi-sum-value text-green">{{ bestReturnDisplay() ?? '—' }}</span>
+            <span class="kpi-sum-label">Meilleur retour</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined" class="kpi-sum-card" matRipple
+                matTooltip="Ratio de Sharpe moyen — mesure du rendement ajusté au risque">
+        <mat-card-content class="kpi-sum-content">
+          <div class="kpi-sum-icon icon-orange"><mat-icon>speed</mat-icon></div>
+          <div class="kpi-sum-info">
+            <span class="kpi-sum-value text-orange">
+              {{ avgSharpe() !== null ? (avgSharpe()! | number:'1.2-2') : '—' }}
+            </span>
+            <span class="kpi-sum-label">Sharpe moyen</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined" class="kpi-sum-card" matRipple
+                matTooltip="Win Rate moyen sur l'ensemble des backtests">
+        <mat-card-content class="kpi-sum-content">
+          <div class="kpi-sum-icon icon-purple"><mat-icon>emoji_events</mat-icon></div>
+          <div class="kpi-sum-info">
+            <span class="kpi-sum-value text-purple">
+              {{ avgWinRate() !== null ? ((avgWinRate()!) | number:'1.1-1') + '%' : '—' }}
+            </span>
+            <span class="kpi-sum-label">Win Rate moyen</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+    </div>
+  }
 
   <!-- ── Grille principale ── -->
   <div class="main-grid">
 
-    <!-- ══ Carte historique (gauche, grande) ══ -->
+    <!-- ══ Colonne gauche : Historique ══ -->
     <mat-card appearance="outlined" class="card-historique">
-
       <mat-card-header>
-        <div mat-card-avatar class="avatar-history">
+        <div mat-card-avatar class="avatar-history"
+             [matBadge]="totalBacktests() > 0 ? totalBacktests() : null"
+             matBadgeColor="primary" matBadgeSize="small">
           <mat-icon>history</mat-icon>
         </div>
-        <mat-card-title>Historiques Backtests lancés</mat-card-title>
+        <mat-card-title>Historique des backtests</mat-card-title>
         @if (!loading()) {
           <mat-card-subtitle>
-            {{ isDemo() ? demoHistory().length : totalBacktests() }}
-            backtest{{ (isDemo() ? demoHistory().length : totalBacktests()) > 1 ? 's' : '' }}
+            {{ totalBacktests() }} backtest{{ totalBacktests() !== 1 ? 's' : '' }} enregistrés
           </mat-card-subtitle>
         }
       </mat-card-header>
-
       <mat-divider />
-
       <mat-card-content class="historique-content">
         <app-history-panel
           [history]="history()"
@@ -41,7 +110,6 @@
           (deleted)="onDelete($event)">
         </app-history-panel>
       </mat-card-content>
-
       @if (!isDemo() && history().length > 0) {
         <mat-divider />
         <mat-card-actions>
@@ -50,41 +118,214 @@
           </button>
         </mat-card-actions>
       }
-
     </mat-card>
 
-    <!-- ══ Colonne droite : 3 cartes ══ -->
+    <!-- ══ Colonne droite ══ -->
     <div class="right-column">
 
-      <!-- Stratégies -->
-      <mat-card appearance="outlined" class="card-nav card-strategies"
-                routerLink="/strategies" matRipple
-                matTooltip="Accéder aux stratégies">
-        <mat-card-content>
-          <mat-icon class="nav-icon">bar_chart</mat-icon>
-          <p class="card-label">Stratégies</p>
-          <p class="card-sub">Gérer vos stratégies</p>
-        </mat-card-content>
-      </mat-card>
+      <!-- Meilleure performance -->
+      @if (!loading() && totalBacktests() > 0) {
+        <mat-card appearance="outlined" class="card-spotlight">
+          <mat-card-header>
+            <div mat-card-avatar class="avatar-spotlight">
+              <mat-icon>workspace_premium</mat-icon>
+            </div>
+            <mat-card-title>Meilleure performance</mat-card-title>
+            <mat-card-subtitle>Top backtest enregistré</mat-card-subtitle>
+          </mat-card-header>
+          <mat-divider />
+          <mat-card-content class="spotlight-content">
 
-      <!-- Marché suivis -->
+            @if (isDemo() && demoBestResult(); as best) {
+              <div class="spotlight-header">
+                <span [class]="'strat-badge ' + stratColor(classifyStrategy(best.strategy))">
+                  {{ classifyStrategy(best.strategy) }}
+                </span>
+                <span class="ticker-chip">{{ best.ticker }}</span>
+                <span class="return-big"
+                      [class.text-green]="best.metrics.total_return_pct >= 0"
+                      [class.text-red]="best.metrics.total_return_pct < 0">
+                  {{ fmtPct(best.metrics.total_return_pct) }}
+                </span>
+              </div>
+
+              @if (bestSparkline(); as spark) {
+                <div class="sparkline-wrap">
+                  <svg viewBox="0 0 200 50" class="sparkline" preserveAspectRatio="none">
+                    <path [attr.d]="spark.fillPath"
+                          [class.spark-fill-pos]="spark.positive"
+                          [class.spark-fill-neg]="!spark.positive" />
+                    <path [attr.d]="spark.linePath" fill="none" stroke-width="2"
+                          stroke-linecap="round" stroke-linejoin="round"
+                          [class.spark-line-pos]="spark.positive"
+                          [class.spark-line-neg]="!spark.positive" />
+                  </svg>
+                </div>
+              }
+
+              <div class="spotlight-kpis">
+                <div class="spot-kpi" matTooltip="Ratio Sharpe — rendement ajusté au risque">
+                  <mat-icon class="spot-icon">speed</mat-icon>
+                  <span class="spot-val">{{ best.metrics.sharpe_ratio | number:'1.2-2' }}</span>
+                  <span class="spot-lbl">Sharpe</span>
+                </div>
+                <mat-divider vertical />
+                <div class="spot-kpi" matTooltip="Drawdown maximum depuis un pic">
+                  <mat-icon class="spot-icon text-red">waterfall_chart</mat-icon>
+                  <span class="spot-val text-red">{{ fmtPct(best.metrics.max_drawdown_pct) }}</span>
+                  <span class="spot-lbl">Drawdown</span>
+                </div>
+                <mat-divider vertical />
+                <div class="spot-kpi" matTooltip="Taux de trades gagnants">
+                  <mat-icon class="spot-icon text-green">emoji_events</mat-icon>
+                  <span class="spot-val">{{ best.metrics.win_rate_pct | number:'1.1-1' }}%</span>
+                  <span class="spot-lbl">Win Rate</span>
+                </div>
+              </div>
+
+              <mat-progress-bar mode="determinate" [value]="best.metrics.win_rate_pct"
+                class="spot-bar" [class.spot-bar-warn]="best.metrics.win_rate_pct < 50"
+                matTooltip="Win Rate : {{ best.metrics.win_rate_pct | number:'1.1-1' }}%" />
+            }
+
+            @if (!isDemo() && bestReturn(); as best) {
+              <div class="spotlight-header">
+                <span [class]="'strat-badge ' + stratColor(classifyStrategy(best.strategy))">
+                  {{ classifyStrategy(best.strategy) }}
+                </span>
+                <span class="ticker-chip">{{ best.ticker }}</span>
+                <span class="return-big"
+                      [class.text-green]="best.total_return_strat >= 0"
+                      [class.text-red]="best.total_return_strat < 0">
+                  {{ fmtPct(best.total_return_strat * 100) }}
+                </span>
+              </div>
+              <div class="spotlight-kpis">
+                <div class="spot-kpi" matTooltip="Ratio Sharpe">
+                  <mat-icon class="spot-icon">speed</mat-icon>
+                  <span class="spot-val">{{ best.sharpe_ratio | number:'1.2-2' }}</span>
+                  <span class="spot-lbl">Sharpe</span>
+                </div>
+                <mat-divider vertical />
+                <div class="spot-kpi" matTooltip="Drawdown maximum">
+                  <mat-icon class="spot-icon text-red">waterfall_chart</mat-icon>
+                  <span class="spot-val text-red">{{ fmtPct(best.max_drawdown * 100) }}</span>
+                  <span class="spot-lbl">Drawdown</span>
+                </div>
+                <mat-divider vertical />
+                <div class="spot-kpi" matTooltip="Win Rate">
+                  <mat-icon class="spot-icon text-green">emoji_events</mat-icon>
+                  <span class="spot-val">{{ (best.win_rate * 100) | number:'1.1-1' }}%</span>
+                  <span class="spot-lbl">Win Rate</span>
+                </div>
+              </div>
+              <mat-progress-bar mode="determinate" [value]="best.win_rate * 100"
+                class="spot-bar" [class.spot-bar-warn]="best.win_rate < 0.5"
+                matTooltip="Win Rate : {{ best.win_rate * 100 | number:'1.1-1' }}%" />
+            }
+
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <!-- Stratégies — performance par type -->
+      @if (!loading() && strategyBreakdown().length > 0) {
+        <mat-card appearance="outlined" class="card-strat-breakdown">
+          <mat-card-header>
+            <div mat-card-avatar class="avatar-strat">
+              <mat-icon>bar_chart</mat-icon>
+            </div>
+            <mat-card-title>Stratégies</mat-card-title>
+            <mat-card-subtitle>Retour moyen par type</mat-card-subtitle>
+          </mat-card-header>
+          <mat-divider />
+          <mat-card-content class="strat-breakdown-content">
+            @for (s of strategyBreakdown(); track s.strategy) {
+              <div class="strat-row" [matTooltip]="s.count + ' backtest(s) · avg ' + fmtPct(s.avgReturn, 1)">
+                <span [class]="'strat-badge strat-badge-sm ' + stratColor(s.strategy)">{{ s.strategy }}</span>
+                <div class="strat-bar-wrap">
+                  <div class="strat-bar-track">
+                    <div class="strat-bar-fill"
+                         [class.bar-pos]="s.avgReturn >= 0"
+                         [class.bar-neg]="s.avgReturn < 0"
+                         [style.width.%]="barW(s.avgReturn)"></div>
+                  </div>
+                </div>
+                <span class="strat-return"
+                      [class.text-green]="s.avgReturn >= 0"
+                      [class.text-red]="s.avgReturn < 0">
+                  {{ fmtPct(s.avgReturn, 1) }}
+                </span>
+                <mat-chip class="count-chip" [matTooltip]="s.count + ' backtest(s)'">
+                  {{ s.count }}
+                </mat-chip>
+              </div>
+            }
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <!-- Marchés suivis -->
       <mat-card appearance="outlined" class="card-nav card-marche"
                 routerLink="/data" matRipple
                 matTooltip="Accéder aux données de marché">
-        <mat-card-content>
-          <mat-icon class="nav-icon">candlestick_chart</mat-icon>
-          <p class="card-label">Marché suivis</p>
-          <p class="card-sub">Explorer les données</p>
+        <mat-card-header>
+          <div mat-card-avatar class="avatar-marche">
+            <mat-icon>candlestick_chart</mat-icon>
+          </div>
+          <mat-card-title>Marchés suivis</mat-card-title>
+          <mat-card-subtitle>Indices & contrats</mat-card-subtitle>
+        </mat-card-header>
+        <mat-divider />
+        <mat-card-content class="nav-content market-content">
+          <div class="market-row market-row-sp500">
+            <div class="market-icon-wrap"><span class="market-abbr">S&amp;P</span></div>
+            <div class="market-info">
+              <span class="market-name">S&amp;P 500</span>
+              <span class="market-ticker">^GSPC · Actions US</span>
+            </div>
+          </div>
+          <div class="market-row market-row-nasdaq">
+            <div class="market-icon-wrap"><span class="market-abbr">NDQ</span></div>
+            <div class="market-info">
+              <span class="market-name">NASDAQ</span>
+              <span class="market-ticker">^IXIC · Tech US</span>
+            </div>
+          </div>
+          <div class="market-row market-row-nq">
+            <div class="market-icon-wrap"><span class="market-abbr">NQ=F</span></div>
+            <div class="market-info">
+              <span class="market-name">NQ Futures</span>
+              <span class="market-ticker">NQ=F · Contrat future</span>
+            </div>
+          </div>
         </mat-card-content>
+        <mat-card-actions>
+          <button mat-button>
+            Explorer <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+          </button>
+        </mat-card-actions>
       </mat-card>
+
+      <!-- Mode Avancé -->
+      <button mat-stroked-button class="btn-advanced" routerLink="/advanced"
+              matTooltip="Accéder au mode avancé">
+        <mat-icon>science</mat-icon>
+        Mode Avancé
+        <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+      </button>
 
       <!-- Lancer un backtest -->
       <mat-card appearance="filled" class="card-launch"
                 routerLink="/backtests" matRipple
                 matTooltip="Lancer un nouveau backtest">
-        <mat-card-content>
-          <mat-icon class="launch-icon">play_circle</mat-icon>
-          <p class="card-label">Lancer un backtest</p>
+        <mat-card-content class="launch-content">
+          <div class="launch-icon-wrap"><mat-icon>rocket_launch</mat-icon></div>
+          <div class="launch-text">
+            <span class="launch-title">Lancer un backtest</span>
+            <span class="launch-sub">Tester une stratégie maintenant</span>
+          </div>
+          <mat-icon class="launch-arrow">arrow_forward</mat-icon>
         </mat-card-content>
       </mat-card>
 
@@ -92,4 +333,3 @@
   </div>
 
 </div>
-

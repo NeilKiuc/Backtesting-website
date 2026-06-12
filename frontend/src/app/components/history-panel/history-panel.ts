@@ -72,13 +72,38 @@ export class HistoryPanelComponent {
     if (v >= 2) return 'Excellent';
     if (v >= 1) return 'Bon';
     if (v >= 0) return 'Faible';
-    return 'Négatif';
+    return 'Critique';
   }
 
   sharpeClass(v: number): string {
-    if (v >= 1) return 'positive';
-    if (v >= 0) return 'neutral';
-    return 'negative';
+    if (v >= 1) return 'sharpe-good';
+    if (v >= 0) return 'sharpe-ok';
+    return 'sharpe-bad';
+  }
+
+  sharpeChipClass(v: number): string {
+    if (v >= 1) return 'chip-quality chip-sharpe-good';
+    if (v >= 0) return 'chip-quality chip-sharpe-ok';
+    return 'chip-quality chip-sharpe-bad';
+  }
+
+  strategyColor(s: string): string {
+    const m = s.toLowerCase();
+    if (m.includes('macd')) return 'strat-macd';
+    if (m.includes('rsi'))  return 'strat-rsi';
+    if (m.includes('ma'))   return 'strat-ma';
+    return 'strat-default';
+  }
+
+  strategyLabel(s: string): string {
+    return s.replace(/_/g, ' ').toUpperCase();
+  }
+
+  tickerColor(ticker: string): string {
+    if (ticker.includes('GSPC')) return 'market-sp500';
+    if (ticker.includes('IXIC')) return 'market-nasdaq';
+    if (ticker.includes('NQ'))   return 'market-nq';
+    return '';
   }
 
   delete(id: number, e: Event) {

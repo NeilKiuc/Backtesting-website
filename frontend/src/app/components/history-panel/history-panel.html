@@ -18,29 +18,23 @@
 
   <!-- Tri -->
   <div class="sort-bar">
-
     <button mat-stroked-button [matMenuTriggerFor]="sortMenu">
       <mat-icon>sort</mat-icon>
       Trier par : {{ sortKey() === 'date' ? 'Date' : 'Retour' }}
       <mat-icon iconSuffix>arrow_drop_down</mat-icon>
     </button>
-
     <mat-menu #sortMenu="matMenu">
-      <button mat-menu-item (click)="onSortKey('date')"
-              [class.menu-active]="sortKey() === 'date'">
+      <button mat-menu-item (click)="onSortKey('date')" [class.menu-active]="sortKey() === 'date'">
         <mat-icon>calendar_today</mat-icon> Date
       </button>
-      <button mat-menu-item (click)="onSortKey('return')"
-              [class.menu-active]="sortKey() === 'return'">
+      <button mat-menu-item (click)="onSortKey('return')" [class.menu-active]="sortKey() === 'return'">
         <mat-icon>trending_up</mat-icon> Retour stratégie
       </button>
     </mat-menu>
-
     <button mat-icon-button (click)="toggleDir()"
             [matTooltip]="sortDir() === 'desc' ? 'Décroissant' : 'Croissant'">
       <mat-icon>{{ sortDir() === 'desc' ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
     </button>
-
   </div>
 
   <!-- ══ Mode démo ══ -->
@@ -49,85 +43,84 @@
       @for (r of sortedDemo(); track r.ticker + r.strategy) {
         <mat-expansion-panel class="history-expansion">
 
-          <!-- En-tête -->
           <mat-expansion-panel-header>
             <mat-panel-title>
-              <mat-chip-set>
-                <mat-chip class="chip-ticker">{{ r.ticker }}</mat-chip>
-              </mat-chip-set>
-              <span class="strategy-name">{{ r.strategy.toUpperCase() }}</span>
-            </mat-panel-title>
-            <mat-panel-description>
+              <span [class]="'strat-badge ' + strategyColor(r.strategy)">
+                {{ strategyLabel(r.strategy) }}
+              </span>
+              <span [class]="'ticker-label ' + tickerColor(r.ticker)">{{ r.ticker }}</span>
+              <span class="panel-spacer"></span>
               <span class="return-badge"
                     [class.badge-pos]="r.metrics.total_return_pct >= 0"
                     [class.badge-neg]="r.metrics.total_return_pct < 0">
                 {{ pct(r.metrics.total_return_pct) }}
               </span>
-            </mat-panel-description>
+            </mat-panel-title>
           </mat-expansion-panel-header>
 
-
-          <!-- Détail -->
           <div class="detail">
 
-            <!-- KPI grid -->
             <div class="kpi-grid">
 
               <mat-card class="kpi-card" appearance="outlined"
                         matTooltip="Rendement total de la stratégie">
                 <mat-card-content>
-                  <mat-icon [class]="r.metrics.total_return_pct >= 0 ? 'positive' : 'negative'">
-                    {{ r.metrics.total_return_pct >= 0 ? 'trending_up' : 'trending_down' }}
-                  </mat-icon>
-                  <span class="kpi-val" [class]="r.metrics.total_return_pct >= 0 ? 'positive' : 'negative'">
+                  <div class="kpi-lbl">Retour stratégie</div>
+                  <div [class]="'kpi-val ' + (r.metrics.total_return_pct >= 0 ? 'positive' : 'negative')">
+                    <mat-icon class="kpi-icon">
+                      {{ r.metrics.total_return_pct >= 0 ? 'trending_up' : 'trending_down' }}
+                    </mat-icon>
                     {{ pct(r.metrics.total_return_pct) }}
-                  </span>
-                  <span class="kpi-lbl">Retour stratégie</span>
+                  </div>
                 </mat-card-content>
               </mat-card>
 
               <mat-card class="kpi-card" appearance="outlined"
                         [matTooltip]="sharpeLabel(r.metrics.sharpe_ratio) + ' — ratio risque/rendement'">
                 <mat-card-content>
-                  <mat-icon [class]="sharpeClass(r.metrics.sharpe_ratio)">speed</mat-icon>
-                  <span class="kpi-val" [class]="sharpeClass(r.metrics.sharpe_ratio)">
+                  <div class="kpi-lbl">Sharpe</div>
+                  <div [class]="'kpi-val ' + sharpeClass(r.metrics.sharpe_ratio)">
+                    <mat-icon class="kpi-icon">speed</mat-icon>
                     {{ r.metrics.sharpe_ratio | number:'1.2-2' }}
-                  </span>
-                  <span class="kpi-lbl">Sharpe</span>
-                  <mat-chip class="chip-quality chip-{{ sharpeClass(r.metrics.sharpe_ratio) }}">
-                    {{ sharpeLabel(r.metrics.sharpe_ratio) }}
-                  </mat-chip>
+                  </div>
+                  @if (sharpeClass(r.metrics.sharpe_ratio) !== 'sharpe-bad') {
+                    <mat-chip [class]="sharpeChipClass(r.metrics.sharpe_ratio)">
+                      {{ sharpeLabel(r.metrics.sharpe_ratio) }}
+                    </mat-chip>
+                  }
                 </mat-card-content>
               </mat-card>
 
               <mat-card class="kpi-card" appearance="outlined"
                         matTooltip="Pire baisse depuis un pic — plus proche de 0 est mieux">
                 <mat-card-content>
-                  <mat-icon class="negative">waterfall_chart</mat-icon>
-                  <span class="kpi-val negative">{{ pct(r.metrics.max_drawdown_pct) }}</span>
-                  <span class="kpi-lbl">Max Drawdown</span>
+                  <div class="kpi-lbl">Max Drawdown</div>
+                  <div class="kpi-val negative">
+                    <mat-icon class="kpi-icon">waterfall_chart</mat-icon>
+                    {{ pct(r.metrics.max_drawdown_pct) }}
+                  </div>
                 </mat-card-content>
               </mat-card>
 
               <mat-card class="kpi-card" appearance="outlined"
                         matTooltip="% de trades gagnants">
                 <mat-card-content>
-                  <mat-icon [class]="r.metrics.win_rate_pct >= 50 ? 'positive' : 'negative'">
-                    emoji_events
-                  </mat-icon>
-                  <span class="kpi-val" [class]="r.metrics.win_rate_pct >= 50 ? 'positive' : 'negative'">
+                  <div class="kpi-lbl">Win Rate</div>
+                  <div [class]="'kpi-val ' + (r.metrics.win_rate_pct >= 50 ? 'positive' : 'negative')">
+                    <mat-icon class="kpi-icon">emoji_events</mat-icon>
                     {{ r.metrics.win_rate_pct | number:'1.1-1' }}%
-                  </span>
-                  <span class="kpi-lbl">Win Rate</span>
+                  </div>
                 </mat-card-content>
               </mat-card>
 
               <mat-card class="kpi-card" appearance="outlined"
                         matTooltip="Nombre total de positions ouvertes/fermées">
                 <mat-card-content>
-                  <mat-icon class="neutral">swap_horiz</mat-icon>
-                  <span class="kpi-val neutral">{{ r.metrics.n_trades }}</span>
-                  <span class="kpi-lbl">Trades</span>
+                  <div class="kpi-lbl">Trades</div>
+                  <div class="kpi-val neutral">
+                    <mat-icon class="kpi-icon">swap_horiz</mat-icon>
+                    {{ r.metrics.n_trades }}
+                  </div>
                 </mat-card-content>
               </mat-card>
 
@@ -135,13 +128,11 @@
                 <mat-card class="kpi-card" appearance="outlined"
                           matTooltip="Ratio gains bruts / pertes brutes. > 1 = rentable">
                   <mat-card-content>
-                    <mat-icon [class]="r.metrics.profit_factor! >= 1 ? 'positive' : 'negative'">
-                      balance
-                    </mat-icon>
-                    <span class="kpi-val" [class]="r.metrics.profit_factor! >= 1 ? 'positive' : 'negative'">
+                    <div class="kpi-lbl">Profit Factor</div>
+                    <div [class]="'kpi-val ' + (r.metrics.profit_factor! >= 1 ? 'positive' : 'negative')">
+                      <mat-icon class="kpi-icon">balance</mat-icon>
                       {{ r.metrics.profit_factor! | number:'1.2-2' }}
-                    </span>
-                    <span class="kpi-lbl">Profit Factor</span>
+                    </div>
                   </mat-card-content>
                 </mat-card>
               }
@@ -150,13 +141,11 @@
                 <mat-card class="kpi-card" appearance="outlined"
                           matTooltip="Sharpe ne pénalisant que la volatilité négative">
                   <mat-card-content>
-                    <mat-icon [class]="r.metrics.sortino_ratio! >= 1 ? 'positive' : 'neutral'">
-                      show_chart
-                    </mat-icon>
-                    <span class="kpi-val" [class]="r.metrics.sortino_ratio! >= 1 ? 'positive' : 'neutral'">
+                    <div class="kpi-lbl">Sortino</div>
+                    <div [class]="'kpi-val ' + (r.metrics.sortino_ratio! >= 1 ? 'positive' : 'neutral')">
+                      <mat-icon class="kpi-icon">show_chart</mat-icon>
                       {{ r.metrics.sortino_ratio! | number:'1.2-2' }}
-                    </span>
-                    <span class="kpi-lbl">Sortino</span>
+                    </div>
                   </mat-card-content>
                 </mat-card>
               }
@@ -165,13 +154,11 @@
                 <mat-card class="kpi-card" appearance="outlined"
                           matTooltip="Gain moyen attendu par trade">
                   <mat-card-content>
-                    <mat-icon [class]="r.metrics.expectancy_pct! >= 0 ? 'positive' : 'negative'">
-                      functions
-                    </mat-icon>
-                    <span class="kpi-val" [class]="r.metrics.expectancy_pct! >= 0 ? 'positive' : 'negative'">
+                    <div class="kpi-lbl">Espérance</div>
+                    <div [class]="'kpi-val ' + (r.metrics.expectancy_pct! >= 0 ? 'positive' : 'negative')">
+                      <mat-icon class="kpi-icon">functions</mat-icon>
                       {{ pct(r.metrics.expectancy_pct!) }}
-                    </span>
-                    <span class="kpi-lbl">Espérance</span>
+                    </div>
                   </mat-card-content>
                 </mat-card>
               }
@@ -180,37 +167,29 @@
 
             <mat-divider />
 
-            <!-- Comparaison stratégie vs marché -->
             <div class="comparison">
-              <p class="section-title">
-                <mat-icon>bar_chart</mat-icon> Stratégie vs Marché
-              </p>
-
+              <p class="section-title"><mat-icon>bar_chart</mat-icon> Stratégie vs Marché</p>
               <div class="bar-row">
                 <span class="bar-lbl">Stratégie</span>
                 <div class="bar-track">
                   <div class="bar-fill"
                        [class.bar-pos]="r.metrics.total_return_pct >= 0"
                        [class.bar-neg]="r.metrics.total_return_pct < 0"
-                       [style.width.%]="barW(r.metrics.total_return_pct)">
-                  </div>
+                       [style.width.%]="barW(r.metrics.total_return_pct)"></div>
                 </div>
                 <span class="bar-val" [class]="r.metrics.total_return_pct >= 0 ? 'positive' : 'negative'">
                   {{ pct(r.metrics.total_return_pct) }}
                 </span>
               </div>
-
               @if (r.metrics.market_return_pct !== null) {
                 <div class="bar-row">
                   <span class="bar-lbl">Marché</span>
                   <div class="bar-track">
                     <div class="bar-fill bar-market"
-                         [style.width.%]="barW(r.metrics.market_return_pct!)">
-                    </div>
+                         [style.width.%]="barW(r.metrics.market_return_pct!)"></div>
                   </div>
                   <span class="bar-val neutral">{{ pct(r.metrics.market_return_pct!) }}</span>
                 </div>
-
                 <div class="alpha-row">
                   <mat-chip-set>
                     <mat-chip class="chip-alpha"
@@ -229,11 +208,8 @@
 
             <mat-divider />
 
-            <!-- Win rate barre de progression -->
             <div class="winrate-section">
-              <p class="section-title">
-                <mat-icon>emoji_events</mat-icon> Win Rate
-              </p>
+              <p class="section-title"><mat-icon>emoji_events</mat-icon> Win Rate</p>
               <div class="winrate-row">
                 <span class="winrate-label">
                   {{ r.metrics.n_trades }} trades —
@@ -243,24 +219,18 @@
                   {{ r.metrics.win_rate_pct | number:'1.1-1' }}%
                 </span>
               </div>
-              <mat-progress-bar
-                mode="determinate"
-                [value]="r.metrics.win_rate_pct"
-                class="winrate-bar"
-                [class.bar-warn]="r.metrics.win_rate_pct < 50">
+              <mat-progress-bar mode="determinate" [value]="r.metrics.win_rate_pct"
+                class="winrate-bar" [class.bar-warn]="r.metrics.win_rate_pct < 50">
               </mat-progress-bar>
               <div class="bar-scale">
                 <span>0%</span><span class="mid">50%</span><span>100%</span>
               </div>
             </div>
 
-            <!-- Métriques avancées (si dispo) -->
             @if (r.metrics.avg_win_pct !== null || r.metrics.avg_loss_pct !== null || r.metrics.time_in_market_pct !== null) {
               <mat-divider />
               <div class="advanced-section">
-                <p class="section-title">
-                  <mat-icon>analytics</mat-icon> Métriques avancées
-                </p>
+                <p class="section-title"><mat-icon>analytics</mat-icon> Métriques avancées</p>
                 <mat-chip-set class="advanced-chips">
                   @if (r.metrics.avg_win_pct !== null) {
                     <mat-chip matTooltip="Gain moyen par trade gagnant" class="chip-adv chip-pos">
@@ -287,7 +257,7 @@
                     </mat-chip>
                   }
                   @if (r.metrics.volatility_annualized_pct !== null) {
-                    <mat-chip matTooltip="Volatilité annualisée de la stratégie" class="chip-adv">
+                    <mat-chip matTooltip="Volatilité annualisée" class="chip-adv">
                       <mat-icon matChipAvatar>ssid_chart</mat-icon>
                       Volatilité : {{ r.metrics.volatility_annualized_pct! | number:'1.2-2' }}%
                     </mat-chip>
@@ -310,88 +280,94 @@
 
           <mat-expansion-panel-header>
             <mat-panel-title>
-              <mat-chip-set>
-                <mat-chip class="chip-ticker">{{ r.ticker }}</mat-chip>
-              </mat-chip-set>
-              <span class="strategy-name">{{ r.strategy }}</span>
-            </mat-panel-title>
-            <mat-panel-description>
+              <span [class]="'strat-badge ' + strategyColor(r.strategy)">
+                {{ strategyLabel(r.strategy) }}
+              </span>
+              <span [class]="'ticker-label ' + tickerColor(r.ticker)">{{ r.ticker }}</span>
+              <span class="panel-spacer"></span>
               <span class="return-badge"
                     [class.badge-pos]="r.total_return_strat >= 0"
                     [class.badge-neg]="r.total_return_strat < 0">
                 {{ pct(r.total_return_strat * 100) }}
               </span>
               <span class="panel-date">{{ r.created_at | date:'dd/MM/yy' }}</span>
-            </mat-panel-description>
+            </mat-panel-title>
           </mat-expansion-panel-header>
 
           <div class="detail">
 
-            <!-- KPI grid -->
             <div class="kpi-grid">
 
               <mat-card class="kpi-card" appearance="outlined"
                         matTooltip="Rendement total de la stratégie">
                 <mat-card-content>
-                  <mat-icon [class]="r.total_return_strat >= 0 ? 'positive' : 'negative'">
-                    {{ r.total_return_strat >= 0 ? 'trending_up' : 'trending_down' }}
-                  </mat-icon>
-                  <span class="kpi-val" [class]="r.total_return_strat >= 0 ? 'positive' : 'negative'">
+                  <div class="kpi-lbl">Retour stratégie</div>
+                  <div [class]="'kpi-val ' + (r.total_return_strat >= 0 ? 'positive' : 'negative')">
+                    <mat-icon class="kpi-icon">
+                      {{ r.total_return_strat >= 0 ? 'trending_up' : 'trending_down' }}
+                    </mat-icon>
                     {{ pct(r.total_return_strat * 100) }}
-                  </span>
-                  <span class="kpi-lbl">Retour stratégie</span>
+                  </div>
                 </mat-card-content>
               </mat-card>
 
               <mat-card class="kpi-card" appearance="outlined"
                         [matTooltip]="sharpeLabel(r.sharpe_ratio) + ' — ratio risque/rendement'">
                 <mat-card-content>
-                  <mat-icon [class]="sharpeClass(r.sharpe_ratio)">speed</mat-icon>
-                  <span class="kpi-val" [class]="sharpeClass(r.sharpe_ratio)">
+                  <div class="kpi-lbl">Sharpe</div>
+                  <div [class]="'kpi-val ' + sharpeClass(r.sharpe_ratio)">
+                    <mat-icon class="kpi-icon">speed</mat-icon>
                     {{ r.sharpe_ratio | number:'1.2-2' }}
-                  </span>
-                  <span class="kpi-lbl">Sharpe</span>
-                  <mat-chip class="chip-quality chip-{{ sharpeClass(r.sharpe_ratio) }}">
-                    {{ sharpeLabel(r.sharpe_ratio) }}
-                  </mat-chip>
+                  </div>
+                  @if (sharpeClass(r.sharpe_ratio) !== 'sharpe-bad') {
+                    <mat-chip [class]="sharpeChipClass(r.sharpe_ratio)">
+                      {{ sharpeLabel(r.sharpe_ratio) }}
+                    </mat-chip>
+                  }
                 </mat-card-content>
               </mat-card>
 
               <mat-card class="kpi-card" appearance="outlined"
                         matTooltip="Pire baisse depuis un pic">
                 <mat-card-content>
-                  <mat-icon class="negative">waterfall_chart</mat-icon>
-                  <span class="kpi-val negative">{{ pct(r.max_drawdown * 100) }}</span>
-                  <span class="kpi-lbl">Max Drawdown</span>
+                  <div class="kpi-lbl">Max Drawdown</div>
+                  <div class="kpi-val negative">
+                    <mat-icon class="kpi-icon">waterfall_chart</mat-icon>
+                    {{ pct(r.max_drawdown * 100) }}
+                  </div>
                 </mat-card-content>
               </mat-card>
 
               <mat-card class="kpi-card" appearance="outlined"
                         matTooltip="% de trades gagnants">
                 <mat-card-content>
-                  <mat-icon [class]="r.win_rate >= 0.5 ? 'positive' : 'negative'">emoji_events</mat-icon>
-                  <span class="kpi-val" [class]="r.win_rate >= 0.5 ? 'positive' : 'negative'">
+                  <div class="kpi-lbl">Win Rate</div>
+                  <div [class]="'kpi-val ' + (r.win_rate >= 0.5 ? 'positive' : 'negative')">
+                    <mat-icon class="kpi-icon">emoji_events</mat-icon>
                     {{ (r.win_rate * 100) | number:'1.1-1' }}%
-                  </span>
-                  <span class="kpi-lbl">Win Rate</span>
+                  </div>
                 </mat-card-content>
               </mat-card>
 
               <mat-card class="kpi-card" appearance="outlined"
                         matTooltip="Nombre total de trades">
                 <mat-card-content>
-                  <mat-icon class="neutral">swap_horiz</mat-icon>
-                  <span class="kpi-val neutral">{{ r.n_trades }}</span>
-                  <span class="kpi-lbl">Trades</span>
+                  <div class="kpi-lbl">Trades</div>
+                  <div class="kpi-val neutral">
+                    <mat-icon class="kpi-icon">swap_horiz</mat-icon>
+                    {{ r.n_trades }}
+                  </div>
                 </mat-card-content>
               </mat-card>
 
               <mat-card class="kpi-card" appearance="outlined"
                         matTooltip="Période analysée">
                 <mat-card-content>
-                  <mat-icon class="neutral">calendar_today</mat-icon>
-                  <span class="kpi-val neutral">{{ r.period }}</span>
-                  <span class="kpi-lbl">Période</span>
+                  <div class="kpi-lbl">Période</div>
+                  <div class="kpi-val neutral">
+                    <mat-icon class="kpi-icon">calendar_today</mat-icon>
+                    {{ r.period }}
+                  </div>
                 </mat-card-content>
               </mat-card>
 
@@ -399,19 +375,15 @@
 
             <mat-divider />
 
-            <!-- Comparaison -->
             <div class="comparison">
-              <p class="section-title">
-                <mat-icon>bar_chart</mat-icon> Stratégie vs Marché
-              </p>
+              <p class="section-title"><mat-icon>bar_chart</mat-icon> Stratégie vs Marché</p>
               <div class="bar-row">
                 <span class="bar-lbl">Stratégie</span>
                 <div class="bar-track">
                   <div class="bar-fill"
                        [class.bar-pos]="r.total_return_strat >= 0"
                        [class.bar-neg]="r.total_return_strat < 0"
-                       [style.width.%]="barW(r.total_return_strat * 100)">
-                  </div>
+                       [style.width.%]="barW(r.total_return_strat * 100)"></div>
                 </div>
                 <span class="bar-val" [class]="r.total_return_strat >= 0 ? 'positive' : 'negative'">
                   {{ pct(r.total_return_strat * 100) }}
@@ -421,8 +393,7 @@
                 <span class="bar-lbl">Marché</span>
                 <div class="bar-track">
                   <div class="bar-fill bar-market"
-                       [style.width.%]="barW(r.total_return_market * 100)">
-                  </div>
+                       [style.width.%]="barW(r.total_return_market * 100)"></div>
                 </div>
                 <span class="bar-val neutral">{{ pct(r.total_return_market * 100) }}</span>
               </div>
@@ -443,11 +414,8 @@
 
             <mat-divider />
 
-            <!-- Win rate -->
             <div class="winrate-section">
-              <p class="section-title">
-                <mat-icon>emoji_events</mat-icon> Win Rate
-              </p>
+              <p class="section-title"><mat-icon>emoji_events</mat-icon> Win Rate</p>
               <div class="winrate-row">
                 <span class="winrate-label">
                   {{ r.n_trades }} trades —
@@ -457,11 +425,8 @@
                   {{ (r.win_rate * 100) | number:'1.1-1' }}%
                 </span>
               </div>
-              <mat-progress-bar
-                mode="determinate"
-                [value]="r.win_rate * 100"
-                class="winrate-bar"
-                [class.bar-warn]="r.win_rate < 0.5">
+              <mat-progress-bar mode="determinate" [value]="r.win_rate * 100"
+                class="winrate-bar" [class.bar-warn]="r.win_rate < 0.5">
               </mat-progress-bar>
               <div class="bar-scale">
                 <span>0%</span><span class="mid">50%</span><span>100%</span>
@@ -470,7 +435,6 @@
 
             <mat-divider />
 
-            <!-- Footer -->
             <div class="panel-footer">
               <mat-chip-set>
                 <mat-chip class="chip-meta">
