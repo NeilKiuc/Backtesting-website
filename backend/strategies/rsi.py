@@ -28,6 +28,14 @@ class RSIStrategy(BaseStrategy):
     def name(self) -> str:
         return "rsi"
 
+    @property
+    def description(self) -> str:
+        return "RSI : long sous le seuil de survente, short au-dessus du surachat"
+
+    @property
+    def category(self) -> str:
+        return "momentum"
+
     def compute_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
 

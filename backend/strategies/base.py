@@ -36,3 +36,15 @@ class BaseStrategy(ABC):
     def name(self) -> str:
         """Nom court de la stratégie (ex: 'macd', 'rsi', 'ma_crossover')."""
         ...
+
+    @property
+    @abstractmethod
+    def description(self) -> str:
+        """Description intuitive de la stratégie."""
+        ...
+
+    @property
+    @abstractmethod
+    def category(self) -> str:
+        """Catégorie : 'trend', 'momentum' ou 'volume'."""
+        ...

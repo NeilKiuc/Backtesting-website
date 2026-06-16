@@ -27,6 +27,14 @@ class MACDStrategy(BaseStrategy):
     def name(self) -> str:
         return "macd"
 
+    @property
+    def description(self) -> str:
+        return "MACD : long quand la ligne MACD croise au-dessus du signal"
+
+    @property
+    def category(self) -> str:
+        return "momentum"
+
     def compute_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
 

@@ -27,6 +27,14 @@ class MACrossoverStrategy(BaseStrategy):
     def name(self) -> str:
         return "ma_crossover"
 
+    @property
+    def description(self) -> str:
+        return "Croisement de moyennes mobiles simples"
+
+    @property
+    def category(self) -> str:
+        return "trend"
+
     def compute_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
 

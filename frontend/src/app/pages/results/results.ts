@@ -66,11 +66,18 @@ export class Results implements OnInit {
     return 'sharpe-bad';
   }
 
+  private chipMap: Record<string, string> = {
+    macd:            'chip-macd',
+    rsi:             'chip-rsi',
+    ma_crossover:    'chip-ma',
+    ema_crossover:   'chip-ema',
+    bollinger_bands: 'chip-bb',
+    stochastic:      'chip-stoch',
+    obv:             'chip-obv',
+  };
+
   strategyClass(s: string): string {
-    if (s === 'macd')         return 'chip-macd';
-    if (s === 'rsi')          return 'chip-rsi';
-    if (s === 'ma_crossover') return 'chip-ma';
-    return 'chip-default';
+    return this.chipMap[s] ?? 'chip-default';
   }
 
   metricCards(): MetricCard[] {

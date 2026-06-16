@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,7 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { DataService, BacktestResult, normalizeOldResult } from '../../../services/data-service';
+import { DataService, BacktestResult, normalizeOldResult, StrategyInfo } from '../../../services/data-service';
 import { AuthService } from '../../../services/auth.service';
 import { BacktestHistoryService } from '../../../services/backtest-history.service';
 
@@ -26,9 +26,13 @@ const TICKER_MAP: Record<string, string> = {
 };
 
 const DEFAULT_PARAMS: Record<string, Record<string, number>> = {
-  macd:         { fast: 12, slow: 26, signal: 9 },
-  rsi:          { length: 14, overbought: 70, oversold: 30 },
-  ma_crossover: { fast: 10, slow: 30 },
+  macd:            { fast: 12, slow: 26, signal: 9 },
+  rsi:             { length: 14, overbought: 70, oversold: 30 },
+  ma_crossover:    { fast: 10, slow: 30 },
+  ema_crossover:   { fast: 12, slow: 26 },
+  bollinger_bands: { period: 20, std_dev: 2 },
+  stochastic:      { k_period: 14, d_period: 3, overbought: 80, oversold: 20 },
+  obv:             { signal_period: 20 },
 };
 
 @Component({
@@ -46,7 +50,7 @@ const DEFAULT_PARAMS: Record<string, Record<string, number>> = {
   templateUrl: './backtests.html',
   styleUrl: './backtests.scss',
 })
-export class Backtests {
+export class Backtests implements OnInit {
   private dataService = inject(DataService);
   private auth        = inject(AuthService);
   private router      = inject(Router);
@@ -57,6 +61,15 @@ export class Backtests {
   strategy = signal<string>('macd');
 
   params = signal<Record<string, number>>({ ...DEFAULT_PARAMS['macd'] });
+
+  strategies = signal<Record<string, StrategyInfo>>({});
+  strategyKeys = computed(() => Object.keys(this.strategies()));
+
+  ngOnInit() {
+    this.dataService.getStrategies().subscribe({
+      next: (res) => this.strategies.set(res.strategies),
+    });
+  }
 
   isLoading    = signal<boolean>(false);
   errorMessage = signal<string | null>(null);

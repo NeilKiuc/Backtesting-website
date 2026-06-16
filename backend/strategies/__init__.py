@@ -12,6 +12,10 @@ C'est tout — la route FastAPI la détectera automatiquement.
 from .macd import MACDStrategy
 from .rsi import RSIStrategy
 from .ma_crossover import MACrossoverStrategy
+from .ema_crossover import EMACrossoverStrategy
+from .bollinger_bands import BollingerBandsStrategy
+from .stochastic import StochasticStrategy
+from .obv import OBVStrategy
 from .base import BaseStrategy
 
 # Clé = nom utilisé dans la requête JSON  {"strategy": "macd", ...}
@@ -19,6 +23,10 @@ STRATEGIES_REGISTRY: dict[str, type[BaseStrategy]] = {
     "macd": MACDStrategy,
     "rsi": RSIStrategy,
     "ma_crossover": MACrossoverStrategy,
+    "ema_crossover": EMACrossoverStrategy,
+    "bollinger_bands": BollingerBandsStrategy,
+    "stochastic": StochasticStrategy,
+    "obv": OBVStrategy,
 }
 
 __all__ = [
@@ -26,5 +34,9 @@ __all__ = [
     "MACDStrategy",
     "RSIStrategy",
     "MACrossoverStrategy",
+    "EMACrossoverStrategy",
+    "BollingerBandsStrategy",
+    "StochasticStrategy",
+    "OBVStrategy",
     "STRATEGIES_REGISTRY",
 ]
